@@ -1,4 +1,4 @@
-export type Category = 'all' | 'protein' | 'energy' | 'recovery' | 'weight-management';
+export type Category = 'all' | 'protein' | 'energy' | 'recovery' | 'weight-management' | 'skincare' | 'makeup';
 
 export interface Product {
   id: string;
@@ -19,6 +19,8 @@ export const categories: { id: Category; label: string }[] = [
   { id: 'energy', label: 'Energy' },
   { id: 'recovery', label: 'Recovery' },
   { id: 'weight-management', label: 'Weight Management' },
+  { id: 'skincare', label: 'Skincare' },
+  { id: 'makeup', label: 'Makeup' },
 ];
 
 export const products: Product[] = [
@@ -135,5 +137,64 @@ export const products: Product[] = [
     flavor: 'Litchi Delight',
     weight: '450g',
     benefits: ['Muscle repair & endurance', 'Reduces cramps', 'Essential electrolytes'],
+  },
+  // Urban Color London Products
+  {
+    id: 'uc-hydra-veil-primer',
+    name: 'Hydra Veil Matte Primer',
+    description: 'The best base for a flawless, airbrushed look. Smooths skin texture, blurs pores and fine lines.',
+    price: 650,
+    category: 'skincare',
+    image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop',
+    flavor: 'Universal',
+    weight: '30ml',
+    benefits: ['Oil-free all day', 'Vitamin E & Gotu Kola', 'Dermatologically tested'],
+    badge: 'New',
+  },
+  {
+    id: 'uc-cc-cream',
+    name: 'All-In-One CC Cream SPF 20',
+    description: 'Color-correcting pigments that balance and brighten your complexion with SPF 20 protection.',
+    price: 799,
+    category: 'makeup',
+    image: 'https://images.unsplash.com/photo-1631214540553-ff44137c6168?w=400&h=400&fit=crop',
+    flavor: 'Rose',
+    weight: '30g',
+    benefits: ['SPF 20 protection', 'Natural radiant finish', 'Hydrating formula'],
+  },
+  {
+    id: 'uc-bb-cream',
+    name: 'Cover All BB Cream SPF 20',
+    description: 'Stay Fresh, Stay Flawless. Multi-action BB cream for a naturally radiant look.',
+    price: 699,
+    category: 'makeup',
+    image: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=400&h=400&fit=crop',
+    flavor: 'Natural',
+    weight: '30g',
+    benefits: ['SPF 20 protection', 'Lightweight coverage', 'All-day hydration'],
+    badge: 'Bestseller',
+  },
+  {
+    id: 'uc-dramatic-kajal',
+    name: 'Dramatic Eyes Kajal',
+    description: 'Bold kajal designed to elevate every look with effortless intensity. Long-lasting and beautifully pigmented.',
+    price: 299,
+    category: 'makeup',
+    image: 'https://images.unsplash.com/photo-1583241475880-083f84372725?w=400&h=400&fit=crop',
+    flavor: 'Jet Black',
+    weight: '0.35g',
+    benefits: ['12hr smudge-proof', 'Intense pigmentation', 'Comfortable wear'],
+    badge: 'New Launch',
+  },
+  {
+    id: 'uc-matte-lipstick',
+    name: 'Matte Liquid Lipstick',
+    description: 'Ultra-matte finish with intense color payoff. Lightweight, non-drying formula for all-day comfort.',
+    price: 499,
+    category: 'makeup',
+    image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400&h=400&fit=crop',
+    flavor: 'Cherry Red',
+    weight: '5ml',
+    benefits: ['Long-lasting matte', 'Non-drying formula', 'Intense pigmentation'],
   },
 ];
