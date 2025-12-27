@@ -24,13 +24,13 @@ const ProductGrid = () => {
   }, [searchQuery, selectedCategory]);
 
   return (
-    <section id="products" className="py-16">
+    <section id="products" className="py-8 sm:py-12 md:py-16">
       <div className="container mx-auto px-4">
-        <div className="mb-8 space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="mb-6 sm:mb-8 space-y-4 sm:space-y-6">
+          <div className="flex flex-col gap-3 sm:gap-4">
             <div>
-              <h2 className="font-display text-3xl font-bold mb-2">Our Products</h2>
-              <p className="text-muted-foreground">
+              <h2 className="font-display text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Our Products</h2>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 {filteredProducts.length} products available
               </p>
             </div>
@@ -40,16 +40,16 @@ const ProductGrid = () => {
         </div>
 
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-16">
-            <Package className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="font-display text-xl font-semibold mb-2">No products found</h3>
-            <p className="text-muted-foreground">
+          <div className="text-center py-12 sm:py-16">
+            <Package className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4" />
+            <h3 className="font-display text-lg sm:text-xl font-semibold mb-2">No products found</h3>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Try adjusting your search or filter to find what you're looking for.
             </p>
           </div>
