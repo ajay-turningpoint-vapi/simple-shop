@@ -36,7 +36,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
       return [...prev, { product, quantity: 1 }];
     });
-    setIsCartOpen(true);
+    // Don't auto-open cart on add - only show counter
   };
 
   const removeFromCart = (productId: string) => {
