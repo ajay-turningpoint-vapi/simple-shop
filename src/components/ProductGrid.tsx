@@ -1,27 +1,32 @@
 import { useMemo, useState } from 'react';
-import { products, Category } from '@/data/products';
+import { useProducts } from '@/context/ProductContext';
+import { Category } from '@/data/products';
 import ProductCard from './ProductCard';
 import SearchBar from './SearchBar';
 import CategoryFilter from './CategoryFilter';
 import { Package } from 'lucide-react';
 
 const ProductGrid = () => {
+  const { getActiveProducts } = useProducts();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Category>('all');
+
+  const products = getActiveProducts();
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const matchesSearch =
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.flavor.toLowerCase().includes(searchQuery.toLowerCase());
+        (product.brand && product.brand.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        product.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
       
       const matchesCategory =
         selectedCategory === 'all' || product.category === selectedCategory;
 
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [products, searchQuery, selectedCategory]);
 
   return (
     <section id="products" className="py-8 sm:py-12 md:py-16">

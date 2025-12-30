@@ -14,6 +14,9 @@ interface CartContextType {
   clearCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
+  getItemQuantity: (productId: string) => number;
+  incrementQuantity: (product: Product) => void;
+  decrementQuantity: (productId: string) => void;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
 }
@@ -36,7 +39,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
       return [...prev, { product, quantity: 1 }];
     });
-    // Don't auto-open cart on add - only show counter
   };
 
   const removeFromCart = (productId: string) => {
@@ -53,6 +55,26 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         item.product.id === productId ? { ...item, quantity } : item
       )
     );
+  };
+
+  const getItemQuantity = (productId: string) => {
+    const item = items.find((item) => item.product.id === productId);
+    return item ? item.quantity : 0;
+  };
+
+  const incrementQuantity = (product: Product) => {
+    addToCart(product);
+  };
+
+  const decrementQuantity = (productId: string) => {
+    const item = items.find((item) => item.product.id === productId);
+    if (item) {
+      if (item.quantity <= 1) {
+        removeFromCart(productId);
+      } else {
+        updateQuantity(productId, item.quantity - 1);
+      }
+    }
   };
 
   const clearCart = () => {
@@ -80,6 +102,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         clearCart,
         getTotalItems,
         getTotalPrice,
+        getItemQuantity,
+        incrementQuantity,
+        decrementQuantity,
         isCartOpen,
         setIsCartOpen,
       }}

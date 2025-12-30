@@ -35,7 +35,7 @@ const CartSidebar = () => {
     const orderDetails = items
       .map(
         (item) =>
-          `• ${item.product.name} (${item.product.flavor}) x${item.quantity} - ${formatPrice(item.product.price * item.quantity)}`
+          `• ${item.product.name} (${item.product.variants[0]?.color || 'Default'}) x${item.quantity} - ${formatPrice(item.product.price * item.quantity)}`
       )
       .join('\n');
 
@@ -89,13 +89,13 @@ const CartSidebar = () => {
                   className="flex gap-4 p-3 bg-secondary/30 rounded-lg animate-fade-in"
                 >
                   <img
-                    src={item.product.image}
+                    src={item.product.images[0]}
                     alt={item.product.name}
                     className="w-20 h-20 object-cover rounded-lg"
                   />
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold truncate">{item.product.name}</h4>
-                    <p className="text-sm text-muted-foreground">{item.product.flavor}</p>
+                    <p className="text-sm text-muted-foreground">{item.product.variants[0]?.color || item.product.brand}</p>
                     <p className="text-sm font-semibold text-primary mt-1">
                       {formatPrice(item.product.price)}
                     </p>

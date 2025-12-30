@@ -1,4 +1,5 @@
-import { categories, Category } from '@/data/products';
+import { useProducts } from '@/context/ProductContext';
+import { Category } from '@/data/products';
 import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
@@ -8,6 +9,8 @@ interface CategoryFilterProps {
 }
 
 const CategoryFilter = ({ selected, onChange }: CategoryFilterProps) => {
+  const { categories } = useProducts();
+
   return (
     <div id="categories" className="-mx-4 px-4 md:mx-0 md:px-0">
       <ScrollArea className="w-full whitespace-nowrap md:whitespace-normal">

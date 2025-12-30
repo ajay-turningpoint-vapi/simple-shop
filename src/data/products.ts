@@ -1,200 +1,150 @@
-export type Category = 'all' | 'protein' | 'energy' | 'recovery' | 'weight-management' | 'skincare' | 'makeup';
+export type Category = 'all' | 'electronics' | 'clothing' | 'food' | 'books' | 'toys' | 'sports' | 'home' | 'beauty' | 'automotive' | 'other';
+
+export interface ProductVariant {
+  color: string;
+  colorCode?: string;
+  stock: number;
+  images: string[];
+  sku?: string;
+  isAvailable: boolean;
+}
 
 export interface Product {
   id: string;
   name: string;
   description: string;
+  mrp: number;
   price: number;
+  discountPercent: number;
   category: Category;
-  image: string;
-  flavor: string;
-  weight: string;
-  benefits: string[];
-  badge?: string;
+  brand?: string;
+  images: string[];
+  variants: ProductVariant[];
+  specifications: Record<string, string>;
+  tags: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export const categories: { id: Category; label: string }[] = [
+export interface CategoryItem {
+  id: Category;
+  label: string;
+}
+
+export const categories: CategoryItem[] = [
   { id: 'all', label: 'All Products' },
-  { id: 'protein', label: 'Protein' },
-  { id: 'energy', label: 'Energy' },
-  { id: 'recovery', label: 'Recovery' },
-  { id: 'weight-management', label: 'Weight Management' },
-  { id: 'skincare', label: 'Skincare' },
-  { id: 'makeup', label: 'Makeup' },
+  { id: 'electronics', label: 'Electronics' },
+  { id: 'clothing', label: 'Clothing' },
+  { id: 'food', label: 'Food' },
+  { id: 'books', label: 'Books' },
+  { id: 'toys', label: 'Toys' },
+  { id: 'sports', label: 'Sports' },
+  { id: 'home', label: 'Home' },
+  { id: 'beauty', label: 'Beauty' },
+  { id: 'automotive', label: 'Automotive' },
+  { id: 'other', label: 'Other' },
 ];
 
 export const products: Product[] = [
   {
     id: 'clean-whey-mango',
-    name: 'Clean Whey',
+    name: 'Clean Whey Protein',
     description: 'Crafted with premium protein from grass-fed cows. 24g protein, 4.6g BCAAs, 9g EAAs per serving.',
+    mrp: 7499,
     price: 6229,
-    category: 'protein',
-    image: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=400&h=400&fit=crop',
-    flavor: 'Mango Twist',
-    weight: '900g',
-    benefits: ['Supports recovery & muscle building', 'No artificial sweeteners', '4 clean ingredients'],
-    badge: 'Bestseller',
+    discountPercent: 17,
+    category: 'food',
+    brand: 'ShapeShift',
+    images: ['https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=400&h=400&fit=crop'],
+    variants: [
+      { color: 'Mango Twist', colorCode: '#FFB347', stock: 50, images: [], sku: 'CW-MNG-001', isAvailable: true },
+      { color: 'Chocolate', colorCode: '#7B3F00', stock: 30, images: [], sku: 'CW-CHO-001', isAvailable: true }
+    ],
+    specifications: { weight: '900g', servings: '30', protein: '24g' },
+    tags: ['bestseller', 'protein', 'muscle'],
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
-  {
-    id: 'clean-whey-iso',
-    name: 'Clean Whey ISO',
-    description: '90% whey isolate for fast absorption. 25g protein, 5.7g BCAAs, 12g EAAs per serving.',
-    price: 7297,
-    category: 'protein',
-    image: 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=400&h=400&fit=crop',
-    flavor: 'Chocolate Fusion',
-    weight: '900g',
-    benefits: ['Faster recovery & lean muscle', 'Light on stomach', '90% protein content'],
-    badge: 'Premium',
-  },
-  {
-    id: 'clean-protein-her',
-    name: 'Clean Protein For Her',
-    description: 'Designed for women with collagen builder blend and biotin for strength & beauty.',
-    price: 3115,
-    category: 'protein',
-    image: 'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=400&h=400&fit=crop',
-    flavor: 'Vanilla',
-    weight: '500g',
-    benefits: ['Supports glowing skin', 'Strong hair & nails', 'Lean muscle support'],
-  },
-  {
-    id: 'clean-mass',
-    name: 'Clean Mass',
-    description: 'Clean calories with creatine for powerful muscle growth. 12g protein per serving.',
-    price: 5339,
-    category: 'protein',
-    image: 'https://images.unsplash.com/photo-1619771914272-e3c1f8e895c1?w=400&h=400&fit=crop',
-    flavor: 'Banana Twist',
-    weight: '3kg',
-    benefits: ['Muscle building & weight gain', 'Clean calories', 'Creatine enhanced'],
-    badge: 'Value Pack',
-  },
-  {
-    id: 'clean-bcaa-tangy',
-    name: 'Clean BCAA',
-    description: '2:1:1 ratio of BCAAs with Glutamine and electrolytes for recovery.',
-    price: 3115,
-    category: 'recovery',
-    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop',
-    flavor: 'Tangy Twist',
-    weight: '450g',
-    benefits: ['Muscle repair & endurance', 'Reduces cramps', 'Essential electrolytes'],
-  },
-  {
-    id: 'clean-energy',
-    name: 'Clean Energy Pre-Workout',
-    description: 'Beta-Alanine, L-Citrulline & Caffeine for sustained energy and focus.',
-    price: 3115,
-    category: 'energy',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
-    flavor: 'Rocket Candy',
-    weight: '450g',
-    benefits: ['Immediate energy boost', 'Mental focus', 'Train longer & harder'],
-    badge: 'Popular',
-  },
-  {
-    id: 'clean-creatine',
-    name: 'Clean Creatine',
-    description: 'Creatine Monohydrate with Protease Enzyme for better absorption.',
-    price: 1780,
-    category: 'recovery',
-    image: 'https://images.unsplash.com/photo-1584116831289-e53912463c35?w=400&h=400&fit=crop',
-    flavor: 'Unflavoured',
-    weight: '250g',
-    benefits: ['Boosts muscle strength', 'Better recovery', 'Enhanced absorption'],
-  },
-  {
-    id: 'carniburn',
-    name: 'Carniburn',
-    description: 'L-Carnitine fat burner with Garcinia Cambogia for metabolism support.',
-    price: 1780,
-    category: 'weight-management',
-    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=400&fit=crop',
-    flavor: 'Tropical Thunder',
-    weight: '60g',
-    benefits: ['Fat metabolism support', 'Controls cravings', 'Lean muscle maintenance'],
-  },
-  {
-    id: 'clean-whey-chocolate',
-    name: 'Clean Whey',
-    description: 'Premium whey protein from grass-fed cows. Rich chocolate flavor.',
-    price: 6229,
-    category: 'protein',
-    image: 'https://images.unsplash.com/photo-1606889464198-fcb18894cf50?w=400&h=400&fit=crop',
-    flavor: 'Chocolate Delight',
-    weight: '900g',
-    benefits: ['Supports recovery & muscle building', 'No artificial sweeteners', '4 clean ingredients'],
-  },
-  {
-    id: 'clean-bcaa-litchi',
-    name: 'Clean BCAA',
-    description: 'Refreshing Litchi flavor with 2:1:1 BCAA ratio for optimal recovery.',
-    price: 3115,
-    category: 'recovery',
-    image: 'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=400&h=400&fit=crop',
-    flavor: 'Litchi Delight',
-    weight: '450g',
-    benefits: ['Muscle repair & endurance', 'Reduces cramps', 'Essential electrolytes'],
-  },
-  // Urban Color London Products
   {
     id: 'uc-hydra-veil-primer',
     name: 'Hydra Veil Matte Primer',
     description: 'The best base for a flawless, airbrushed look. Smooths skin texture, blurs pores and fine lines.',
+    mrp: 850,
     price: 650,
-    category: 'skincare',
-    image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop',
-    flavor: 'Universal',
-    weight: '30ml',
-    benefits: ['Oil-free all day', 'Vitamin E & Gotu Kola', 'Dermatologically tested'],
-    badge: 'New',
+    discountPercent: 24,
+    category: 'beauty',
+    brand: 'Urban Color',
+    images: ['https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop'],
+    variants: [
+      { color: 'Universal', colorCode: '#F5F5DC', stock: 100, images: [], sku: 'UC-HVP-001', isAvailable: true }
+    ],
+    specifications: { weight: '30ml', type: 'Primer' },
+    tags: ['new', 'skincare', 'primer'],
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'uc-cc-cream',
     name: 'All-In-One CC Cream SPF 20',
     description: 'Color-correcting pigments that balance and brighten your complexion with SPF 20 protection.',
+    mrp: 999,
     price: 799,
-    category: 'makeup',
-    image: 'https://images.unsplash.com/photo-1631214540553-ff44137c6168?w=400&h=400&fit=crop',
-    flavor: 'Rose',
-    weight: '30g',
-    benefits: ['SPF 20 protection', 'Natural radiant finish', 'Hydrating formula'],
+    discountPercent: 20,
+    category: 'beauty',
+    brand: 'Urban Color',
+    images: ['https://images.unsplash.com/photo-1631214540553-ff44137c6168?w=400&h=400&fit=crop'],
+    variants: [
+      { color: 'Rose', colorCode: '#FFB6C1', stock: 75, images: [], sku: 'UC-CC-001', isAvailable: true },
+      { color: 'Natural', colorCode: '#FFDAB9', stock: 60, images: [], sku: 'UC-CC-002', isAvailable: true }
+    ],
+    specifications: { weight: '30g', spf: '20' },
+    tags: ['makeup', 'spf', 'bestseller'],
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: 'uc-bb-cream',
-    name: 'Cover All BB Cream SPF 20',
-    description: 'Stay Fresh, Stay Flawless. Multi-action BB cream for a naturally radiant look.',
-    price: 699,
-    category: 'makeup',
-    image: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=400&h=400&fit=crop',
-    flavor: 'Natural',
-    weight: '30g',
-    benefits: ['SPF 20 protection', 'Lightweight coverage', 'All-day hydration'],
-    badge: 'Bestseller',
+    id: 'wireless-earbuds',
+    name: 'Pro Wireless Earbuds',
+    description: 'Premium wireless earbuds with active noise cancellation and 24-hour battery life.',
+    mrp: 4999,
+    price: 3499,
+    discountPercent: 30,
+    category: 'electronics',
+    brand: 'TechPro',
+    images: ['https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&h=400&fit=crop'],
+    variants: [
+      { color: 'Black', colorCode: '#000000', stock: 200, images: [], sku: 'WE-BLK-001', isAvailable: true },
+      { color: 'White', colorCode: '#FFFFFF', stock: 150, images: [], sku: 'WE-WHT-001', isAvailable: true }
+    ],
+    specifications: { battery: '24hrs', bluetooth: '5.3', driver: '10mm' },
+    tags: ['electronics', 'audio', 'wireless'],
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: 'uc-dramatic-kajal',
-    name: 'Dramatic Eyes Kajal',
-    description: 'Bold kajal designed to elevate every look with effortless intensity. Long-lasting and beautifully pigmented.',
-    price: 299,
-    category: 'makeup',
-    image: 'https://images.unsplash.com/photo-1583241475880-083f84372725?w=400&h=400&fit=crop',
-    flavor: 'Jet Black',
-    weight: '0.35g',
-    benefits: ['12hr smudge-proof', 'Intense pigmentation', 'Comfortable wear'],
-    badge: 'New Launch',
-  },
-  {
-    id: 'uc-matte-lipstick',
-    name: 'Matte Liquid Lipstick',
-    description: 'Ultra-matte finish with intense color payoff. Lightweight, non-drying formula for all-day comfort.',
-    price: 499,
-    category: 'makeup',
-    image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400&h=400&fit=crop',
-    flavor: 'Cherry Red',
-    weight: '5ml',
-    benefits: ['Long-lasting matte', 'Non-drying formula', 'Intense pigmentation'],
+    id: 'cotton-tshirt',
+    name: 'Premium Cotton T-Shirt',
+    description: 'Ultra-soft 100% organic cotton t-shirt. Comfortable fit for everyday wear.',
+    mrp: 1299,
+    price: 799,
+    discountPercent: 38,
+    category: 'clothing',
+    brand: 'ComfortWear',
+    images: ['https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop'],
+    variants: [
+      { color: 'Navy Blue', colorCode: '#000080', stock: 100, images: [], sku: 'CT-NVY-M', isAvailable: true },
+      { color: 'White', colorCode: '#FFFFFF', stock: 80, images: [], sku: 'CT-WHT-M', isAvailable: true },
+      { color: 'Black', colorCode: '#000000', stock: 120, images: [], sku: 'CT-BLK-M', isAvailable: true }
+    ],
+    specifications: { material: '100% Cotton', fit: 'Regular', care: 'Machine Wash' },
+    tags: ['clothing', 'casual', 'cotton'],
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
