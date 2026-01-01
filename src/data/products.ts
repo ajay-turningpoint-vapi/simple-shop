@@ -30,20 +30,21 @@ export interface Product {
 export interface CategoryItem {
   id: Category;
   label: string;
+  image: string;
 }
 
 export const categories: CategoryItem[] = [
-  { id: 'all', label: 'All Products' },
-  { id: 'electronics', label: 'Electronics' },
-  { id: 'clothing', label: 'Clothing' },
-  { id: 'food', label: 'Food' },
-  { id: 'books', label: 'Books' },
-  { id: 'toys', label: 'Toys' },
-  { id: 'sports', label: 'Sports' },
-  { id: 'home', label: 'Home' },
-  { id: 'beauty', label: 'Beauty' },
-  { id: 'automotive', label: 'Automotive' },
-  { id: 'other', label: 'Other' },
+  { id: 'all', label: 'All', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop' },
+  { id: 'electronics', label: 'Electronics', image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=100&h=100&fit=crop' },
+  { id: 'clothing', label: 'Clothing', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=100&h=100&fit=crop' },
+  { id: 'food', label: 'Food', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=100&h=100&fit=crop' },
+  { id: 'books', label: 'Books', image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=100&h=100&fit=crop' },
+  { id: 'toys', label: 'Toys', image: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=100&h=100&fit=crop' },
+  { id: 'sports', label: 'Sports', image: 'https://images.unsplash.com/photo-1461896836934- voices-icon?w=100&h=100&fit=crop' },
+  { id: 'home', label: 'Home', image: 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=100&h=100&fit=crop' },
+  { id: 'beauty', label: 'Beauty', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=100&h=100&fit=crop' },
+  { id: 'automotive', label: 'Auto', image: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=100&h=100&fit=crop' },
+  { id: 'other', label: 'Other', image: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=100&h=100&fit=crop' },
 ];
 
 export const products: Product[] = [

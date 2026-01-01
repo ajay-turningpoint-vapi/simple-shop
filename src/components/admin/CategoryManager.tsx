@@ -11,6 +11,7 @@ const CategoryManager = () => {
   const { categories, addCategory, deleteCategory } = useProducts();
   const [newId, setNewId] = useState('');
   const [newLabel, setNewLabel] = useState('');
+  const [newImage, setNewImage] = useState('');
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,10 +20,12 @@ const CategoryManager = () => {
       return;
     }
     const id = newId.toLowerCase().replace(/\s+/g, '-') as Category;
-    addCategory({ id, label: newLabel });
+    const image = newImage || 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=100&h=100&fit=crop';
+    addCategory({ id, label: newLabel, image });
     toast.success('Category added!');
     setNewId('');
     setNewLabel('');
+    setNewImage('');
   };
 
   const handleDelete = (id: Category) => {
@@ -57,6 +60,15 @@ const CategoryManager = () => {
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
               placeholder="Display Label"
+            />
+          </div>
+          <div className="flex-1">
+            <Label htmlFor="catImage" className="sr-only">Image URL</Label>
+            <Input
+              id="catImage"
+              value={newImage}
+              onChange={(e) => setNewImage(e.target.value)}
+              placeholder="Image URL (optional)"
             />
           </div>
           <Button type="submit">
