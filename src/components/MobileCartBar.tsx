@@ -1,22 +1,18 @@
-import { ShoppingCart, ChevronUp } from 'lucide-react';
+import { ChevronUp } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const MobileCartBar = () => {
-  const { items, getTotalPrice, getTotalItems, setIsCartOpen } = useCart();
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  const { items, getTotalItems, setIsCartOpen } = useCart();
 
   const totalItems = getTotalItems();
 
   if (totalItems === 0) return null;
+
+  // Get unique products (max 4 for display)
+  const displayItems = items.slice(0, 4);
+  const remainingCount = items.length - 4;
 
   return (
     <div
@@ -36,22 +32,51 @@ const MobileCartBar = () => {
             "btn-glow"
           )}
         >
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-2 -right-2 bg-background text-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-bounce-subtle">
-                {totalItems}
-              </span>
+          <div className="flex items-center gap-2">
+            {/* Stacked Product Images */}
+            <div className="flex items-center -space-x-3">
+              {displayItems.map((item, index) => (
+                <div
+                  key={item.product.id}
+                  className={cn(
+                    "w-9 h-9 rounded-full border-2 border-primary bg-background overflow-hidden",
+                    "animate-pop-in shadow-md",
+                    "transition-all duration-300"
+                  )}
+                  style={{
+                    zIndex: displayItems.length - index,
+                    animationDelay: `${index * 50}ms`
+                  }}
+                >
+                  <img
+                    src={item.product.images[0] || '/placeholder.svg'}
+                    alt={item.product.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+              {remainingCount > 0 && (
+                <div
+                  className={cn(
+                    "w-9 h-9 rounded-full border-2 border-primary bg-muted",
+                    "flex items-center justify-center text-xs font-bold text-muted-foreground",
+                    "animate-pop-in shadow-md"
+                  )}
+                  style={{ zIndex: 0 }}
+                >
+                  +{remainingCount}
+                </div>
+              )}
             </div>
-            <span className="font-semibold">
+            
+            {/* Item Count */}
+            <span className="font-semibold ml-1">
               {totalItems} {totalItems === 1 ? 'item' : 'items'}
             </span>
           </div>
           
           <div className="flex items-center gap-2">
-            <span className="font-display font-bold text-lg">
-              {formatPrice(getTotalPrice())}
-            </span>
+            <span className="font-display font-bold">View Cart</span>
             <ChevronUp className="h-5 w-5 animate-bounce" />
           </div>
         </Button>
