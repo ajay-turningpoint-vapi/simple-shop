@@ -28,20 +28,20 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const hasDiscount = product.discountPercent > 0;
 
   return (
-    <div className="group relative bg-card rounded-xl overflow-hidden border border-border card-hover animate-fade-in">
+    <div className="group relative bg-card rounded-lg sm:rounded-xl overflow-hidden border border-border card-hover animate-fade-in">
       {product.tags.includes('bestseller') && (
-        <Badge className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 bg-primary text-primary-foreground text-[10px] sm:text-xs">
-          Bestseller
+        <Badge className="absolute top-1 left-1 sm:top-3 sm:left-3 z-10 bg-primary text-primary-foreground text-[8px] sm:text-xs px-1 sm:px-2 py-0">
+          Best
         </Badge>
       )}
       {product.tags.includes('new') && (
-        <Badge className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 bg-green-600 text-white text-[10px] sm:text-xs">
+        <Badge className="absolute top-1 left-1 sm:top-3 sm:left-3 z-10 bg-green-600 text-white text-[8px] sm:text-xs px-1 sm:px-2 py-0">
           New
         </Badge>
       )}
       {hasDiscount && (
-        <Badge className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 bg-destructive text-destructive-foreground text-[10px] sm:text-xs">
-          {product.discountPercent}% OFF
+        <Badge className="absolute top-1 right-1 sm:top-3 sm:right-3 z-10 bg-destructive text-destructive-foreground text-[8px] sm:text-xs px-1 sm:px-2 py-0">
+          {product.discountPercent}%
         </Badge>
       )}
       
@@ -53,24 +53,19 @@ const ProductCard = ({ product }: ProductCardProps) => {
         />
       </div>
 
-      <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
-        <div className="space-y-1">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-display font-semibold text-sm sm:text-lg leading-tight line-clamp-1">
-              {product.name}
-            </h3>
-            {product.brand && (
-              <span className="shrink-0 text-[10px] sm:text-xs text-muted-foreground bg-secondary px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
-                {product.brand}
-              </span>
-            )}
-          </div>
-          {product.variants[0] && (
-            <p className="text-xs sm:text-sm text-primary font-medium">{product.variants[0].color}</p>
+      <div className="p-1.5 sm:p-4 space-y-1 sm:space-y-3">
+        <div className="space-y-0.5 sm:space-y-1">
+          <h3 className="font-display font-semibold text-[10px] sm:text-lg leading-tight line-clamp-1">
+            {product.name}
+          </h3>
+          {product.brand && (
+            <span className="hidden sm:inline-block text-xs text-muted-foreground bg-secondary px-2 py-1 rounded">
+              {product.brand}
+            </span>
           )}
         </div>
 
-        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
+        <p className="hidden sm:block text-sm text-muted-foreground line-clamp-2">
           {product.description}
         </p>
 
@@ -85,13 +80,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
           ))}
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-border">
-          <div className="flex flex-col">
-            <span className="font-display text-base sm:text-xl font-bold">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0 sm:pt-2 sm:border-t sm:border-border">
+          <div className="flex items-center sm:flex-col sm:items-start gap-1 sm:gap-0">
+            <span className="font-display text-[11px] sm:text-xl font-bold">
               {formatPrice(product.price)}
             </span>
             {hasDiscount && (
-              <span className="text-xs text-muted-foreground line-through">
+              <span className="text-[9px] sm:text-xs text-muted-foreground line-through">
                 {formatPrice(product.mrp)}
               </span>
             )}
@@ -101,31 +96,31 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <Button
               size="sm"
               onClick={handleAddToCart}
-              className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
+              className="h-6 sm:h-9 px-2 sm:px-3 text-[10px] sm:text-sm w-full sm:w-auto"
             >
               <Plus className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-              <span className="hidden xs:inline">Add</span>
+              <span className="sm:inline">Add</span>
             </Button>
           ) : (
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center justify-center gap-1 sm:gap-2">
               <Button
                 size="icon"
                 variant="outline"
                 onClick={() => decrementQuantity(product.id)}
-                className="h-7 w-7 sm:h-8 sm:w-8"
+                className="h-5 w-5 sm:h-8 sm:w-8"
               >
-                <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Minus className="h-2.5 w-2.5 sm:h-4 sm:w-4" />
               </Button>
-              <span className="w-6 sm:w-8 text-center font-semibold text-sm sm:text-base">
+              <span className="w-4 sm:w-8 text-center font-semibold text-[10px] sm:text-base">
                 {quantity}
               </span>
               <Button
                 size="icon"
                 variant="outline"
                 onClick={() => incrementQuantity(product)}
-                className="h-7 w-7 sm:h-8 sm:w-8"
+                className="h-5 w-5 sm:h-8 sm:w-8"
               >
-                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Plus className="h-2.5 w-2.5 sm:h-4 sm:w-4" />
               </Button>
             </div>
           )}
