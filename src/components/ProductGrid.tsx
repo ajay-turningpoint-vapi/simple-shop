@@ -33,12 +33,12 @@ const ProductGrid = () => {
       <div className="container mx-auto px-4">
         <div className="mb-6 sm:mb-8 space-y-4 sm:space-y-6">
           <div className="flex flex-col gap-3 sm:gap-4">
-            <div>
+            {/* <div>
               <h2 className="font-display text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Our Products</h2>
               <p className="text-sm sm:text-base text-muted-foreground">
                 {filteredProducts.length} products available
               </p>
-            </div>
+            </div> */}
             <SearchBar value={searchQuery} onChange={setSearchQuery} />
           </div>
           <CategoryFilter selected={selectedCategory} onChange={setSelectedCategory} />

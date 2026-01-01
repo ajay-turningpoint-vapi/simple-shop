@@ -14,7 +14,7 @@ const Index = () => {
         <div className="min-h-screen flex flex-col">
           <Header />
           <main className="flex-1 pb-20 md:pb-0">
-            <Hero />
+            {/* <Hero /> */}
             <ProductGrid />
           </main>
           <Footer />

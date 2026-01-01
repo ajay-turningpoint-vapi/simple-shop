@@ -12,52 +12,66 @@ const CategoryFilter = ({ selected, onChange }: CategoryFilterProps) => {
   const { categories } = useProducts();
 
   return (
-    <div id="categories" className="-mx-4 px-4 md:mx-0 md:px-0">
-      {/* Mobile: 4-column grid with image cards */}
-      <div className="grid grid-cols-4 gap-2 md:hidden">
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => onChange(category.id)}
-            className={cn(
-              'flex flex-col items-center gap-1 p-1.5 rounded-lg transition-all duration-200',
-              selected === category.id
-                ? 'bg-primary/10 ring-2 ring-primary'
-                : 'bg-secondary/50 hover:bg-secondary'
-            )}
-          >
-            <div className={cn(
-              'w-12 h-12 rounded-lg overflow-hidden ring-2 transition-all',
-              selected === category.id ? 'ring-primary' : 'ring-transparent'
-            )}>
-              <img
-                src={category.image}
-                alt={category.label}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <span className={cn(
-              'text-[9px] font-medium text-center leading-tight line-clamp-1',
-              selected === category.id ? 'text-primary' : 'text-foreground'
-            )}>
-              {category.label}
-            </span>
-          </button>
-        ))}
-      </div>
+    <div id="categories" className="-mx-3 px-3 md:mx-0 md:px-0">
+      {/* ================= MOBILE ================= */}
+      {/* Small cards | Exactly 4 visible */}
+     <ScrollArea className="md:hidden w-full">
+  <div className="flex gap-2 py-2 pl-1">
+    {categories.map((category) => (
+      <button
+        key={category.id}
+        onClick={() => onChange(category.id)}
+        className={cn(
+          'flex-shrink-0 w-[calc(20%-8px)] rounded-md overflow-hidden transition-all',
+          selected === category.id
+            ? 'ring-1 ring-primary'
+            : 'bg-secondary/50'
+        )}
+      >
+        {/* IMAGE – FULL WIDTH */}
+        <div className="w-full h-14 overflow-hidden">
+          <img
+            src={category.image}
+            alt={category.label}
+            className="w-full h-full object-cover"
+          />
+        </div>
 
-      {/* Desktop: Horizontal scroll with pills */}
-      <ScrollArea className="hidden md:block w-full whitespace-normal">
-        <div className="flex gap-2 pb-2 flex-wrap">
+        {/* TEXT */}
+        <div
+          className={cn(
+            'px-1 py-0.5 text-[8px] font-medium text-center truncate',
+            selected === category.id
+              ? 'text-primary'
+              : 'text-foreground'
+          )}
+        >
+          {category.label}
+        </div>
+      </button>
+    ))}
+  </div>
+
+  <ScrollBar orientation="horizontal" />
+</ScrollArea>
+
+
+      {/* ================= DESKTOP ================= */}
+      {/* 7 visible | scroll rest */}
+      <ScrollArea className="hidden md:block w-full">
+        <div
+          className="flex gap-2 pb-2"
+          style={{ maxWidth: 'calc(7 * 140px)' }}
+        >
           {categories.map((category) => (
             <button
               key={category.id}
               onClick={() => onChange(category.id)}
               className={cn(
-                'flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200',
+                'flex-shrink-0 w-[140px] flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all',
                 selected === category.id
                   ? 'bg-primary text-primary-foreground shadow-md'
-                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  : 'bg-secondary hover:bg-secondary/80'
               )}
             >
               <img
@@ -65,7 +79,7 @@ const CategoryFilter = ({ selected, onChange }: CategoryFilterProps) => {
                 alt={category.label}
                 className="w-6 h-6 rounded-full object-cover"
               />
-              {category.label}
+              <span className="truncate">{category.label}</span>
             </button>
           ))}
         </div>
