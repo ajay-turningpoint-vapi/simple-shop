@@ -31,8 +31,8 @@ const CategoryFilter = ({ selected, onChange }: CategoryFilterProps) => {
         {/* IMAGE – FULL WIDTH */}
         <div className="w-full h-14 overflow-hidden">
           <img
-            src={category.image}
-            alt={category.label}
+            src={category.image || 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=100&h=100&fit=crop'}
+            alt={category.displayName}
             className="w-full h-full object-cover"
           />
         </div>
@@ -46,7 +46,7 @@ const CategoryFilter = ({ selected, onChange }: CategoryFilterProps) => {
               : 'text-foreground'
           )}
         >
-          {category.label}
+          {category.displayName}
         </div>
       </button>
     ))}
@@ -74,13 +74,13 @@ const CategoryFilter = ({ selected, onChange }: CategoryFilterProps) => {
                   : 'bg-secondary hover:bg-secondary/80'
               )}
             >
-              <img
-                src={category.image}
-                alt={category.label}
-                className="w-6 h-6 rounded-full object-cover"
-              />
-              <span className="truncate">{category.label}</span>
-            </button>
+            <img
+              src={category.image || 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=100&h=100&fit=crop'}
+              alt={category.displayName}
+              className="w-6 h-6 rounded-full object-cover"
+            />
+            <span className="truncate">{category.displayName}</span>
+          </button>
           ))}
         </div>
         <ScrollBar orientation="horizontal" />
