@@ -50,7 +50,7 @@ const CartSidebar = () => {
 
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
     window.open(whatsappUrl, '_blank');
-    
+
     toast.success('Opening WhatsApp to complete your order!');
     clearCart();
     setIsCartOpen(false);
@@ -91,6 +91,8 @@ const CartSidebar = () => {
                   <img
                     src={item.product.images[0]}
                     alt={item.product.name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-20 h-20 object-cover rounded-lg"
                   />
                   <div className="flex-1 min-w-0">

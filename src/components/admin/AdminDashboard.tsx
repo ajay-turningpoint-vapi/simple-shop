@@ -150,6 +150,8 @@ const AdminDashboard = () => {
                         <img
                           src={product.images[0] || '/placeholder.svg'}
                           alt={product.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-12 h-12 object-cover rounded"
                         />
                       </TableCell>
@@ -204,6 +206,8 @@ const AdminDashboard = () => {
                   <img
                     src={product.images[0] || '/placeholder.svg'}
                     alt={product.name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-16 h-16 object-cover rounded"
                   />
                   <div className="flex-1 min-w-0">

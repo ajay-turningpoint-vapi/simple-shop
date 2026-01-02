@@ -51,6 +51,8 @@ const MobileCartBar = () => {
                   <img
                     src={item.product.images[0] || '/placeholder.svg'}
                     alt={item.product.name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -68,13 +70,13 @@ const MobileCartBar = () => {
                 </div>
               )}
             </div>
-            
+
             {/* Item Count */}
             <span className="font-semibold ml-1">
               {totalItems} {totalItems === 1 ? 'item' : 'items'}
             </span>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <span className="font-display font-bold">View Cart</span>
             <ChevronUp className="h-5 w-5 animate-bounce" />

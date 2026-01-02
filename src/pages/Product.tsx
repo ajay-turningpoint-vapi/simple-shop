@@ -5,8 +5,7 @@ import { productApi } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/context/CartContext";
-import { ArrowLeft, Loader2 } from "lucide-react";
-
+import { ArrowLeft, Loader2 } from "lucide-react"; import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
 const ProductPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -92,11 +91,55 @@ const ProductPage = () => {
       <div className="max-w-6xl mx-auto p-6">
         <div className="flex flex-col md:flex-row items-start gap-6">
           <div className="w-full md:w-1/2 bg-muted rounded-lg overflow-hidden">
-            <img
-              src={product.images[0] || '/placeholder.svg'}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
+            {/* Image carousel */}
+            <div className="relative">
+              <Carousel>
+                <CarouselContent>
+                  {product.images.map((src, idx) => (
+                    <CarouselItem key={idx}>
+                      <div className="aspect-square bg-muted flex items-center justify-center">
+                        <img
+                          src={src || '/placeholder.svg'}
+                          alt={`${product.name} - ${idx + 1}`}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+
+                {product.images.length > 1 && (
+                  <>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                  </>
+                )}
+              </Carousel>
+
+              {/* Thumbnails */}
+              {product.images.length > 1 && (
+                <div className="mt-2 flex gap-2 overflow-x-auto pb-2">
+                  {product.images.map((src, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        // move to slide by re-initializing via anchor hash (simple) - better: use carousel api; for simplicity, use scrollIntoView
+                        const parent = document.querySelector('[aria-roledescription="carousel"] .flex');
+                        if (parent) {
+                          const item = parent.children[idx] as HTMLElement | undefined;
+                          item?.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+                        }
+                      }}
+                      className="w-16 h-16 flex-shrink-0 rounded-md overflow-hidden border border-border"
+                    >
+                      <img src={src || '/placeholder.svg'} alt={`thumb-${idx}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex-1 space-y-4">
@@ -116,16 +159,7 @@ const ProductPage = () => {
                   </p>
                 )}
               </div>
-              {product.tags.includes('bestseller') && (
-                <Badge className="bg-primary text-primary-foreground">
-                  Bestseller
-                </Badge>
-              )}
-              {product.tags.includes('new') && (
-                <Badge className="bg-green-600 text-white">
-                  New
-                </Badge>
-              )}
+
             </div>
 
             <div>
@@ -148,7 +182,7 @@ const ProductPage = () => {
                   </>
                 )}
               </div>
-              
+
               {Object.keys(product.specifications).length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(product.specifications).map(([key, value]) => (

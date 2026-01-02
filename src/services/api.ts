@@ -64,11 +64,22 @@ export const authApi = {
       headers: getHeaders(false),
       body: JSON.stringify(credentials),
     });
-    const data = await handleResponse<AuthResponse>(response);
-    if (data.token) {
-      setAuthToken(data.token);
+    // Be permissive about response shape as APIs may nest token/user under data
+    const data = await handleResponse<any>(response);
+    const token = data?.token || data?.data?.token || data?.accessToken || data?.data?.accessToken || data?.authToken || data?.data?.authToken;
+    const refreshToken = data?.refreshToken || data?.data?.refreshToken;
+    const user = data?.user || data?.data?.user;
+
+    if (token) {
+      setAuthToken(token);
     }
-    return data;
+
+    return {
+      success: data?.success ?? true,
+      token,
+      refreshToken,
+      user,
+    } as AuthResponse;
   },
 
   getProfile: async (): Promise<{ success: boolean; user: User }> => {
@@ -212,13 +223,60 @@ export interface ProductInput {
   isActive?: boolean;
 }
 
+export interface ProductQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc' | string;
+  brand?: string;
+  inStock?: boolean;
+  color?: string;
+  isActive?: boolean;
+}
+
 export const productApi = {
-  getAll: async (params?: { category?: string; search?: string; isActive?: boolean }): Promise<{ success: boolean; data: ApiProduct[]; count: number }> => {
+  /**
+   * Fetch products with support for pagination, filtering and sorting.
+   */
+  getAll: async (params?: ProductQueryParams): Promise<{ success: boolean; data: ApiProduct[]; count: number }> => {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      category,
+      minPrice,
+      maxPrice,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      brand,
+      inStock,
+      color,
+      isActive,
+    } = params || {};
+
+    /* debug log removed */
+
+
+
+
     const searchParams = new URLSearchParams();
-    if (params?.category) searchParams.append('category', params.category);
-    if (params?.search) searchParams.append('search', params.search);
-    if (params?.isActive !== undefined) searchParams.append('isActive', String(params.isActive));
-    
+    if (page !== undefined) searchParams.append('page', String(page));
+    if (limit !== undefined) searchParams.append('limit', String(limit));
+    if (search) searchParams.append('search', search);
+    if (category) searchParams.append('category', category);
+    if (minPrice !== undefined) searchParams.append('minPrice', String(minPrice));
+    if (maxPrice !== undefined) searchParams.append('maxPrice', String(maxPrice));
+    if (sortBy) searchParams.append('sortBy', sortBy);
+    if (sortOrder) searchParams.append('sortOrder', sortOrder);
+    if (brand) searchParams.append('brand', brand);
+    if (inStock !== undefined) searchParams.append('inStock', String(inStock));
+    if (color) searchParams.append('color', color);
+    if (isActive !== undefined) searchParams.append('isActive', String(isActive));
+
     const url = `${API_BASE_URL}/products${searchParams.toString() ? `?${searchParams}` : ''}`;
     const response = await fetch(url, {
       method: 'GET',
@@ -241,7 +299,8 @@ export const productApi = {
       headers: getHeaders(),
       body: JSON.stringify(product),
     });
-    return handleResponse(response);
+    const body = await handleResponse(response);
+    return body as { success: boolean; data: ApiProduct };
   },
 
   update: async (id: string, product: Partial<ProductInput>): Promise<{ success: boolean; data: ApiProduct }> => {
@@ -250,7 +309,8 @@ export const productApi = {
       headers: getHeaders(),
       body: JSON.stringify(product),
     });
-    return handleResponse(response);
+    const body = await handleResponse(response);
+    return body as { success: boolean; data: ApiProduct };
   },
 
   delete: async (id: string): Promise<{ success: boolean; message: string }> => {
@@ -258,6 +318,7 @@ export const productApi = {
       method: 'DELETE',
       headers: getHeaders(),
     });
-    return handleResponse(response);
+    const body = await handleResponse(response);
+    return body as { success: boolean; message: string };
   },
 };

@@ -35,26 +35,26 @@ const Header = () => {
             <Button
               variant="outline"
               size="icon"
-              className="relative h-9 w-9 sm:h-10 sm:w-10"
+              className="hidden md:inline-flex relative h-9 w-9 md:h-10 md:w-10"
               onClick={() => setIsCartOpen(true)}
             >
-              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
+              <ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />
               {totalItems > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 sm:-right-2 sm:-top-2 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-primary text-[10px] sm:text-xs font-semibold text-primary-foreground animate-scale-in">
+                <span className="absolute -right-1.5 -top-1.5 md:-right-2 md:-top-2 flex h-4 w-4 md:h-5 md:w-5 items-center justify-center rounded-full bg-primary text-[10px] md:text-xs font-semibold text-primary-foreground animate-scale-in">
                   {totalItems}
                 </span>
               )}
             </Button>
 
             {/* Mobile Menu Toggle */}
-            <Button
+            {/* <Button
               variant="ghost"
               size="icon"
               className="md:hidden h-9 w-9"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
+            </Button> */}
           </div>
         </div>
 
@@ -62,15 +62,15 @@ const Header = () => {
         {mobileMenuOpen && (
           <nav className="md:hidden py-4 border-t border-border animate-fade-in">
             <div className="flex flex-col gap-3">
-              <a 
-                href="#products" 
+              <a
+                href="#products"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Products
               </a>
-              <a 
-                href="#categories" 
+              <a
+                href="#categories"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >

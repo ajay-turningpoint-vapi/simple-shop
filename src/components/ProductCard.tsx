@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { Product } from '@/data/products';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ProductQuickView from './ProductQuickView';
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
 
 interface ProductCardProps {
   product: Product;
@@ -20,10 +21,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   const handleImageClick = () => {
-    // Only open quick view on mobile (screen width < 640px)
-    if (window.innerWidth < 640) {
-      setQuickViewOpen(true);
-    }
+    // Open quick view on all screen sizes when image is clicked
+    setQuickViewOpen(true);
   };
 
   const formatPrice = (price: number) => {
@@ -39,7 +38,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <>
       <div className="group relative bg-card rounded-lg sm:rounded-xl overflow-hidden border border-border card-hover animate-fade-in">
-        {product.tags.includes('bestseller') && (
+        {/* {product.tags.includes('bestseller') && (
           <Badge className="absolute top-1 left-1 sm:top-3 sm:left-3 z-10 bg-primary text-primary-foreground text-[8px] sm:text-xs px-1 sm:px-2 py-0">
             Best
           </Badge>
@@ -48,22 +47,62 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <Badge className="absolute top-1 left-1 sm:top-3 sm:left-3 z-10 bg-green-600 text-white text-[8px] sm:text-xs px-1 sm:px-2 py-0">
             New
           </Badge>
-        )}
+        )} */}
         {hasDiscount && (
           <Badge className="absolute top-1 right-1 sm:top-3 sm:right-3 z-10 bg-destructive text-destructive-foreground text-[8px] sm:text-xs px-1 sm:px-2 py-0">
             {product.discountPercent}%
           </Badge>
         )}
-        
-        <div 
-          className="aspect-square overflow-hidden bg-muted cursor-pointer sm:cursor-default"
-          onClick={handleImageClick}
-        >
-          <img
-            src={product.images[0]}
-            alt={product.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
+
+        <div className="aspect-square overflow-hidden bg-muted">
+          <Carousel>
+            <CarouselContent>
+              {product.images && product.images.length > 0 ? (
+                product.images.map((src, idx) => (
+                  <CarouselItem key={idx}>
+                    <div
+                      className="h-full w-full cursor-pointer"
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleImageClick();
+                      }}
+                      onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
+                        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.key === 'Space') {
+                          e.preventDefault();
+                          handleImageClick();
+                        }
+                      }}
+                    >
+                      <div className="h-full w-full">
+                        <img
+                          src={src || '/placeholder.svg'}
+                          alt={`${product.name} - ${idx + 1}`}
+                          loading="lazy"
+                          decoding="async"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))
+              ) : (
+                <CarouselItem>
+                  <div className="h-full w-full flex items-center justify-center">
+                    <img src={'/placeholder.svg'} alt={product.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                  </div>
+                </CarouselItem>
+              )}
+            </CarouselContent>
+
+            {product.images && product.images.length > 1 && (
+              <>
+                <CarouselPrevious onClick={(e) => e.stopPropagation()} />
+                <CarouselNext onClick={(e) => e.stopPropagation()} />
+              </>
+            )}
+          </Carousel>
         </div>
 
         <div className="p-1.5 sm:p-4 space-y-1 sm:space-y-3">
@@ -78,7 +117,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             )}
           </div>
 
-          <p className="hidden sm:block text-sm text-muted-foreground line-clamp-2">
+          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
             {product.description}
           </p>
 
@@ -104,7 +143,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 </span>
               )}
             </div>
-            
+
             {quantity === 0 ? (
               <Button
                 size="sm"
@@ -141,13 +180,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </div>
       </div>
 
-      <ProductQuickView 
-        product={product} 
-        open={quickViewOpen} 
-        onClose={() => setQuickViewOpen(false)} 
+      <ProductQuickView
+        product={product}
+        open={quickViewOpen}
+        onClose={() => setQuickViewOpen(false)}
       />
     </>
   );
 };
 
-export default ProductCard;
+export default memo(ProductCard);

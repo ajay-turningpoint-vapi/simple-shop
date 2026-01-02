@@ -20,7 +20,7 @@ const AdminLogin = () => {
       toast.error('Please enter email and password');
       return;
     }
-    
+
     setIsLoading(true);
     try {
       const success = await login(email, password);

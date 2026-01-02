@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useProducts, Product, Category, ProductVariant } from '@/context/ProductContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,17 +26,54 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
     mrp: product?.mrp || 0,
     price: product?.price || 0,
     discountPercent: product?.discountPercent || 0,
-    category: product?.category || 'other' as Category,
+    category: product?.category || ('other' as Category),
     brand: product?.brand || '',
     images: product?.images || [''],
     variants: product?.variants || [{ color: '', colorCode: '', stock: 0, images: [], sku: '', isAvailable: true }],
+    specifications: product?.specifications ? Object.entries(product.specifications).map(([k, v]) => ({ key: k, value: String(v) })) : [],
     tags: product?.tags?.join(', ') || '',
     isActive: product?.isActive ?? true,
   });
 
+  // When the product prop changes (open for edit), update form data to prefill fields
+  useEffect(() => {
+    if (product) {
+      setFormData({
+        name: product.name || '',
+        description: product.description || '',
+        mrp: product.mrp || 0,
+        price: product.price || 0,
+        discountPercent: product.discountPercent || 0,
+        category: product.category || ('other' as Category),
+        brand: product.brand || '',
+        images: product.images || [''],
+        variants: product.variants || [{ color: '', colorCode: '', stock: 0, images: [], sku: '', isAvailable: true }],
+        specifications: product.specifications ? Object.entries(product.specifications).map(([k, v]) => ({ key: k, value: String(v) })) : [],
+        tags: product.tags?.join(', ') || '',
+        isActive: product.isActive ?? true,
+      });
+    } else if (!product) {
+      // when adding a new product (no product passed), reset to blank when opening
+      setFormData({
+        name: '',
+        description: '',
+        mrp: 0,
+        price: 0,
+        discountPercent: 0,
+        category: 'other' as Category,
+        brand: '',
+        images: [''],
+        variants: [{ color: '', colorCode: '', stock: 0, images: [], sku: '', isAvailable: true }],
+        specifications: [],
+        tags: '',
+        isActive: true,
+      });
+    }
+  }, [product, open]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const productData = {
       name: formData.name,
       description: formData.description,
@@ -47,7 +84,8 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
       brand: formData.brand,
       images: formData.images.filter(Boolean),
       variants: formData.variants.filter(v => v.color),
-      specifications: {},
+      specifications: Object.fromEntries(formData.specifications.filter(s => s.key).map(s => [s.key, s.value])),
+
       tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
       isActive: formData.isActive,
     };
@@ -98,6 +136,35 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
     setFormData(prev => ({
       ...prev,
       variants: prev.variants.map((v, i) => (i === index ? { ...v, [field]: value } : v)),
+    }));
+  };
+
+  // Specifications helpers
+  const addSpecification = () => {
+    setFormData(prev => ({
+      ...prev,
+      specifications: [...prev.specifications, { key: '', value: '' }],
+    }));
+  };
+
+  const removeSpecification = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      specifications: prev.specifications.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateSpecificationKey = (index: number, key: string) => {
+    setFormData(prev => ({
+      ...prev,
+      specifications: prev.specifications.map((s, i) => (i === index ? { ...s, key } : s)),
+    }));
+  };
+
+  const updateSpecificationValue = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      specifications: prev.specifications.map((s, i) => (i === index ? { ...s, value } : s)),
     }));
   };
 
@@ -265,6 +332,33 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Specifications */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Specifications</Label>
+              <Button type="button" variant="outline" size="sm" onClick={addSpecification}>
+                <Plus className="h-4 w-4 mr-1" /> Add
+              </Button>
+            </div>
+            {formData.specifications.map((spec, index) => (
+              <div key={index} className="flex gap-2">
+                <Input
+                  value={spec.key}
+                  onChange={(e) => updateSpecificationKey(index, e.target.value)}
+                  placeholder="Key (e.g., Display)"
+                />
+                <Input
+                  value={spec.value}
+                  onChange={(e) => updateSpecificationValue(index, e.target.value)}
+                  placeholder="Value (e.g., 6.1-inch Super Retina XDR OLED)"
+                />
+                <Button type="button" variant="ghost" size="icon" onClick={() => removeSpecification(index)}>
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
             ))}
           </div>
