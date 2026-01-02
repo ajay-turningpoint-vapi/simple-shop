@@ -4,20 +4,35 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Eye, EyeOff } from 'lucide-react';
+import { Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AdminLogin = () => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(password)) {
-      toast.success('Login successful!');
-    } else {
-      toast.error('Invalid password');
+    if (!email || !password) {
+      toast.error('Please enter email and password');
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const success = await login(email, password);
+      if (success) {
+        toast.success('Login successful!');
+      } else {
+        toast.error('Invalid email or password');
+      }
+    } catch (error) {
+      toast.error('Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -29,10 +44,21 @@ const AdminLogin = () => {
             <Lock className="h-6 w-6 text-primary" />
           </div>
           <CardTitle className="font-display text-2xl">Admin Login</CardTitle>
-          <CardDescription>Enter admin password to access dashboard</CardDescription>
+          <CardDescription>Enter your credentials to access dashboard</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@example.com"
+                disabled={isLoading}
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
@@ -41,8 +67,9 @@ const AdminLogin = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter admin password"
+                  placeholder="Enter password"
                   className="pr-10"
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
@@ -53,12 +80,16 @@ const AdminLogin = () => {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging in...
+                </>
+              ) : (
+                'Login'
+              )}
             </Button>
-            <p className="text-xs text-center text-muted-foreground">
-              Demo password: admin123
-            </p>
           </form>
         </CardContent>
       </Card>

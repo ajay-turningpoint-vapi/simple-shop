@@ -1,16 +1,55 @@
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { products } from "@/data/products";
+import { useState, useEffect } from "react";
+import { Product } from "@/data/products";
+import { productApi } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/context/CartContext";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 
 const ProductPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const product = products.find((p) => p.id === id);
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const response = await productApi.getById(id);
+        if (response.success && response.data) {
+          const apiProduct = response.data;
+          setProduct({
+            id: apiProduct._id,
+            _id: apiProduct._id,
+            name: apiProduct.name,
+            description: apiProduct.description,
+            mrp: apiProduct.mrp,
+            price: apiProduct.price,
+            discountPercent: apiProduct.discountPercent,
+            category: typeof apiProduct.category === 'string' ? apiProduct.category : apiProduct.category._id,
+            brand: apiProduct.brand,
+            images: apiProduct.images,
+            variants: apiProduct.variants,
+            specifications: apiProduct.specifications || {},
+            tags: apiProduct.tags || [],
+            isActive: apiProduct.isActive,
+            createdAt: apiProduct.createdAt,
+            updatedAt: apiProduct.updatedAt,
+          });
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load product');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("en-IN", {
@@ -19,13 +58,21 @@ const ProductPage = () => {
       maximumFractionDigits: 0,
     }).format(price);
 
-  if (!product) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error || !product) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center p-6">
           <h2 className="text-xl font-bold">Product not found</h2>
           <p className="text-muted-foreground mt-2">
-            The product you are looking for does not exist.
+            {error || "The product you are looking for does not exist."}
           </p>
           <div className="mt-4">
             <Button variant="ghost" onClick={() => navigate("/")}>
@@ -37,13 +84,16 @@ const ProductPage = () => {
     );
   }
 
+  const hasDiscount = product.discountPercent > 0;
+  const primaryVariant = product.variants[0];
+
   return (
     <div className="min-h-screen">
       <div className="max-w-6xl mx-auto p-6">
-        <div className="flex items-start gap-6">
-          <div className="w-1/2 bg-muted rounded-lg overflow-hidden">
+        <div className="flex flex-col md:flex-row items-start gap-6">
+          <div className="w-full md:w-1/2 bg-muted rounded-lg overflow-hidden">
             <img
-              src={product.image}
+              src={product.images[0] || '/placeholder.svg'}
               alt={product.name}
               className="w-full h-full object-cover"
             />
@@ -55,16 +105,25 @@ const ProductPage = () => {
                 <h1 className="font-display text-2xl font-bold">
                   {product.name}
                 </h1>
-                <p className="text-sm text-primary font-medium">
-                  {product.flavor} •{" "}
-                  <span className="text-muted-foreground">
-                    {product.weight}
-                  </span>
-                </p>
+                {product.brand && (
+                  <p className="text-sm text-primary font-medium">
+                    {product.brand}
+                    {primaryVariant && (
+                      <span className="text-muted-foreground">
+                        {" "}• {primaryVariant.color}
+                      </span>
+                    )}
+                  </p>
+                )}
               </div>
-              {product.badge && (
+              {product.tags.includes('bestseller') && (
                 <Badge className="bg-primary text-primary-foreground">
-                  {product.badge}
+                  Bestseller
+                </Badge>
+              )}
+              {product.tags.includes('new') && (
+                <Badge className="bg-green-600 text-white">
+                  New
                 </Badge>
               )}
             </div>
@@ -74,20 +133,51 @@ const ProductPage = () => {
             </div>
 
             <div className="space-y-2">
-              <div className="text-xl font-bold">
-                {formatPrice(product.price)}
+              <div className="flex items-center gap-3">
+                <span className="text-xl font-bold">
+                  {formatPrice(product.price)}
+                </span>
+                {hasDiscount && (
+                  <>
+                    <span className="text-muted-foreground line-through">
+                      {formatPrice(product.mrp)}
+                    </span>
+                    <Badge variant="destructive">
+                      {product.discountPercent}% OFF
+                    </Badge>
+                  </>
+                )}
               </div>
-              <div className="flex flex-wrap gap-2">
-                {product.benefits.map((b, i) => (
-                  <span
-                    key={i}
-                    className="text-sm bg-secondary/50 px-3 py-1 rounded"
-                  >
-                    {b}
-                  </span>
-                ))}
-              </div>
+              
+              {Object.keys(product.specifications).length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(product.specifications).map(([key, value]) => (
+                    <span
+                      key={key}
+                      className="text-sm bg-secondary/50 px-3 py-1 rounded"
+                    >
+                      {key}: {value}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
+
+            {product.variants.length > 1 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Available Colors:</p>
+                <div className="flex gap-2">
+                  {product.variants.map((variant, index) => (
+                    <div
+                      key={index}
+                      className="w-8 h-8 rounded-full border-2 border-border"
+                      style={{ backgroundColor: variant.colorCode || '#ccc' }}
+                      title={variant.color}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex items-center gap-3">
               <Button onClick={() => addToCart(product)}>Add to cart</Button>

@@ -189,7 +189,7 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
                 </SelectTrigger>
                 <SelectContent>
                   {filteredCategories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                    <SelectItem key={cat.id} value={cat.id}>{cat.displayName}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
