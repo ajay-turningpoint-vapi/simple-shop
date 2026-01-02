@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5023/api/v1';
+const API_BASE_URL = 'http://3.7.46.178/simple/api/v1';
 
 // Token management
 let authToken: string | null = localStorage.getItem('auth_token');
@@ -128,7 +128,7 @@ export const categoryApi = {
   getAll: async (): Promise<{ success: boolean; data: ApiCategory[]; count: number }> => {
     const response = await fetch(`${API_BASE_URL}/categories`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: getHeaders(false),
     });
     return handleResponse(response);
   },
