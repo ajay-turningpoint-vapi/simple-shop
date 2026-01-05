@@ -1,7 +1,7 @@
 import { ChevronUp } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, getPrimaryImage } from '@/lib/utils';
 
 const MobileCartBar = () => {
   const { items, getTotalItems, setIsCartOpen } = useCart();
@@ -49,11 +49,11 @@ const MobileCartBar = () => {
                   }}
                 >
                   <img
-                    src={item.product.images[0] || '/placeholder.svg'}
+                    src={getPrimaryImage(item.product.images)}
                     alt={item.product.name}
                     loading="lazy"
                     decoding="async"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain bg-white"
                   />
                 </div>
               ))}

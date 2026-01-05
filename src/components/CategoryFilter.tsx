@@ -36,7 +36,7 @@ const CategoryFilter = ({ selected, onChange }: CategoryFilterProps) => {
                   alt={category.displayName}
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain bg-white"
                 />
               </div>
 
@@ -82,7 +82,7 @@ const CategoryFilter = ({ selected, onChange }: CategoryFilterProps) => {
                 alt={category.displayName}
                 loading="lazy"
                 decoding="async"
-                className="w-6 h-6 rounded-full object-cover"
+                className="w-6 h-6 rounded-full object-contain bg-white"
               />
               <span className="truncate">{category.displayName}</span>
             </button>

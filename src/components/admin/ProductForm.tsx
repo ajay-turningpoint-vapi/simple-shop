@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useProducts, Product, Category, ProductVariant } from '@/context/ProductContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { uploadApi } from '@/services/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -28,7 +29,7 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
     discountPercent: product?.discountPercent || 0,
     category: product?.category || ('other' as Category),
     brand: product?.brand || '',
-    images: product?.images || [''],
+    images: product?.images || [{ detail: { url: '' } }],
     variants: product?.variants || [{ color: '', colorCode: '', stock: 0, images: [], sku: '', isAvailable: true }],
     specifications: product?.specifications ? Object.entries(product.specifications).map(([k, v]) => ({ key: k, value: String(v) })) : [],
     tags: product?.tags?.join(', ') || '',
@@ -46,7 +47,7 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
         discountPercent: product.discountPercent || 0,
         category: product.category || ('other' as Category),
         brand: product.brand || '',
-        images: product.images || [''],
+        images: product.images || [{ detail: { url: '' } }],
         variants: product.variants || [{ color: '', colorCode: '', stock: 0, images: [], sku: '', isAvailable: true }],
         specifications: product.specifications ? Object.entries(product.specifications).map(([k, v]) => ({ key: k, value: String(v) })) : [],
         tags: product.tags?.join(', ') || '',
@@ -62,7 +63,7 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
         discountPercent: 0,
         category: 'other' as Category,
         brand: '',
-        images: [''],
+        images: [{ detail: { url: '' } }],
         variants: [{ color: '', colorCode: '', stock: 0, images: [], sku: '', isAvailable: true }],
         specifications: [],
         tags: '',
@@ -82,11 +83,11 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
       discountPercent: Number(formData.discountPercent),
       category: formData.category,
       brand: formData.brand,
-      images: formData.images.filter(Boolean),
-      variants: formData.variants.filter(v => v.color),
-      specifications: Object.fromEntries(formData.specifications.filter(s => s.key).map(s => [s.key, s.value])),
+      images: formData.images.filter((img: any) => !!(img?.detail?.url || img?.thumb?.url)),
+      variants: formData.variants.filter((v: any) => v.color),
+      specifications: Object.fromEntries(formData.specifications.filter((s: any) => s.key).map((s: any) => [s.key, s.value])),
 
-      tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+      tags: formData.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
       isActive: formData.isActive,
     };
 
@@ -101,7 +102,7 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
   };
 
   const addImage = () => {
-    setFormData(prev => ({ ...prev, images: [...prev.images, ''] }));
+    setFormData(prev => ({ ...prev, images: [...prev.images, { detail: { url: '' } }] }));
   };
 
   const removeImage = (index: number) => {
@@ -114,9 +115,23 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
   const updateImage = (index: number, value: string) => {
     setFormData(prev => ({
       ...prev,
-      images: prev.images.map((img, i) => (i === index ? value : img)),
+      images: prev.images.map((img, i) => (i === index ? { ...(img || {}), detail: { ...(img?.detail || {}), url: value } } : img)),
     }));
   };
+
+  // Temporary previews for files while uploading
+  const [tempPreviews, setTempPreviews] = useState<Record<number, string>>({});
+  const tmpUrlsRef = useRef<string[]>([]);
+
+  // Cleanup any leftover object URLs on unmount
+  useEffect(() => {
+    return () => {
+      tmpUrlsRef.current.forEach((u) => {
+        try { URL.revokeObjectURL(u); } catch (e) { /* ignore */ }
+      });
+      tmpUrlsRef.current = [];
+    };
+  }, []);
 
   const addVariant = () => {
     setFormData(prev => ({
@@ -276,17 +291,102 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>Images</Label>
-              <Button type="button" variant="outline" size="sm" onClick={addImage}>
-                <Plus className="h-4 w-4 mr-1" /> Add
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={addImage}>
+                  <Plus className="h-4 w-4 mr-1" /> Add
+                </Button>
+                <input
+                  id="multiUpload"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={async (e) => {
+                    const files = e.target.files;
+                    if (!files || files.length === 0) return;
+                    try {
+                      const results = await uploadApi.uploadFiles(files);
+                      const urls = results.map(r => r.detailUrl || r.thumbUrl).filter(Boolean) as string[];
+                      if (urls.length) {
+                        const imgs = urls.map(u => ({ detail: { url: u } }));
+                        setFormData(prev => ({ ...prev, images: [...prev.images, ...imgs] }));
+                        toast.success('Uploaded images');
+                      }
+                    } catch (err) {
+                      console.error(err);
+                      toast.error('Upload failed');
+                    }
+                    // reset input
+                    e.currentTarget.value = '';
+                  }}
+                />
+                <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById('multiUpload')?.click()}>
+                  Upload Files
+                </Button>
+              </div>
             </div>
-            {formData.images.map((img, index) => (
-              <div key={index} className="flex gap-2">
+            {formData.images.map((img: any, index: number) => (
+              <div key={index} className="flex gap-2 items-center">
+                {/* Preview */}
+                {tempPreviews[index] || img?.detail?.url || img?.thumb?.url ? (
+                  <img
+                    src={tempPreviews[index] || img?.detail?.url || img?.thumb?.url}
+                    alt={`preview-${index}`}
+                    className="h-12 w-12 object-contain rounded bg-white"
+                  />
+                ) : (
+                  <div className="h-12 w-12 bg-secondary/20 rounded flex items-center justify-center text-xs text-muted-foreground">No image</div>
+                )}
+
                 <Input
-                  value={img}
+                  value={img?.detail?.url || ''}
                   onChange={(e) => updateImage(index, e.target.value)}
                   placeholder="Image URL"
                 />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  id={`imgfile-${index}`}
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    const tmp = URL.createObjectURL(f);
+                    tmpUrlsRef.current.push(tmp);
+                    setTempPreviews(prev => ({ ...prev, [index]: tmp }));
+                    try {
+                      const results = await uploadApi.uploadFiles([f]);
+                      const res = results[0];
+                      const url = res?.detailUrl || res?.thumbUrl;
+                      if (url) {
+                        // set the image object with detail/thumb
+                        setFormData(prev => ({
+                          ...prev,
+                          images: prev.images.map((im: any, i: number) => i === index ? { ...(im || {}), detail: { ...(im?.detail || {}), url: res?.detailUrl }, thumb: res?.thumbUrl ? { filename: res.filename, url: res.thumbUrl } : im?.thumb } : im)
+                        }));
+                        toast.success('Image uploaded');
+                      } else {
+                        toast.error('No URL returned');
+                      }
+                    } catch (err) {
+                      console.error(err);
+                      toast.error('Upload failed');
+                    } finally {
+                      // cleanup temp preview
+                      try { URL.revokeObjectURL(tmp); } catch (e) { /* ignore */ }
+                      tmpUrlsRef.current = tmpUrlsRef.current.filter(u => u !== tmp);
+                      setTempPreviews(prev => {
+                        const copy = { ...prev };
+                        delete copy[index];
+                        return copy;
+                      });
+                      e.currentTarget.value = '';
+                    }
+                  }}
+                />
+                <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById(`imgfile-${index}`)?.click()}>
+                  Choose
+                </Button>
                 <Button type="button" variant="ghost" size="icon" onClick={() => removeImage(index)}>
                   <X className="h-4 w-4" />
                 </Button>

@@ -37,3 +37,22 @@ export function extractArrayFromResponse(response: any): any[] {
 
   return [];
 }
+
+/**
+ * Get a primary image URL from the images array. Returns the first non-empty image or a fallback.
+ */
+export function getPrimaryImage(images?: any[], fallback = '/placeholder.svg') {
+  if (!images || !Array.isArray(images)) return fallback;
+  // support both string arrays and ImageItem arrays
+  const first = images.find((i) => !!(typeof i === 'string' ? i : (i?.detail?.url || i?.thumb?.url)));
+  if (!first) return fallback;
+  if (typeof first === 'string') return first;
+  return first.detail?.url || first.thumb?.url || fallback;
+}
+
+export function getImageUrl(image?: any, fallback = '/placeholder.svg') {
+  if (!image) return fallback;
+  if (typeof image === 'string') return image;
+  return image.detail?.url || image.thumb?.url || fallback;
+}
+

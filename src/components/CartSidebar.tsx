@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { getPrimaryImage } from '@/lib/utils';
 
 const WHATSAPP_NUMBER = '918975944936';
 
@@ -88,13 +89,20 @@ const CartSidebar = () => {
                   key={item.product.id}
                   className="flex gap-4 p-3 bg-secondary/30 rounded-lg animate-fade-in"
                 >
-                  <img
-                    src={item.product.images[0]}
-                    alt={item.product.name}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-20 h-20 object-cover rounded-lg"
-                  />
+                  <div className="relative">
+                    <img
+                      src={getPrimaryImage(item.product.images)}
+                      alt={item.product.name}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-20 h-20 object-contain rounded-lg bg-white"
+                    />
+                    {item.product.images.length > 1 && (
+                      <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs px-1 rounded">
+                        +{item.product.images.length - 1}
+                      </div>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold truncate">{item.product.name}</h4>
                     <p className="text-sm text-muted-foreground">{item.product.variants[0]?.color || item.product.brand}</p>

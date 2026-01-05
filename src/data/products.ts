@@ -1,11 +1,26 @@
 // Category type - now supports dynamic categories from API
 export type Category = string;
 
+export interface ImageItem {
+  filename?: string;
+  detail?: {
+    filename?: string;
+    url?: string;
+  };
+  thumb?: {
+    filename?: string;
+    url?: string;
+  };
+  alt?: string;
+  isPrimary?: boolean;
+  uploadedAt?: string;
+}
+
 export interface ProductVariant {
   color: string;
   colorCode?: string;
   stock: number;
-  images: string[];
+  images: ImageItem[];
   sku?: string;
   isAvailable: boolean;
 }
@@ -20,7 +35,7 @@ export interface Product {
   discountPercent: number;
   category: string; // Now stores category ID from API
   brand?: string;
-  images: string[];
+  images: ImageItem[];
   variants: ProductVariant[];
   specifications: Record<string, string>;
   tags: string[];

@@ -1,4 +1,5 @@
 import React, { useState, memo } from 'react';
+import { getImageUrl } from '@/lib/utils';
 import { Plus, Minus } from 'lucide-react';
 import { Product } from '@/data/products';
 import { useCart } from '@/context/CartContext';
@@ -54,11 +55,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </Badge>
         )}
 
-        <div className="aspect-square overflow-hidden bg-muted">
+        <div className="overflow-hidden bg-muted">
           <Carousel>
             <CarouselContent>
               {product.images && product.images.length > 0 ? (
-                product.images.map((src, idx) => (
+                product.images.map((img: any, idx: number) => (
                   <CarouselItem key={idx}>
                     <div
                       className="h-full w-full cursor-pointer"
@@ -77,11 +78,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
                     >
                       <div className="h-full w-full">
                         <img
-                          src={src || '/placeholder.svg'}
+                          src={getImageUrl(img)}
                           alt={`${product.name} - ${idx + 1}`}
                           loading="lazy"
                           decoding="async"
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105 bg-white"
                         />
                       </div>
                     </div>
@@ -90,7 +91,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               ) : (
                 <CarouselItem>
                   <div className="h-full w-full flex items-center justify-center">
-                    <img src={'/placeholder.svg'} alt={product.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                    <img src={'/placeholder.svg'} alt={product.name} loading="lazy" decoding="async" className="h-full w-full object-contain bg-white" />
                   </div>
                 </CarouselItem>
               )}

@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 import { Product } from "@/data/products";
 import { productApi } from "@/services/api";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useCart } from "@/context/CartContext";
+import { Badge } from "@/components/ui/badge"; import { getImageUrl } from '@/lib/utils'; import { useCart } from "@/context/CartContext";
 import { ArrowLeft, Loader2 } from "lucide-react"; import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
 const ProductPage = () => {
   const { id } = useParams();
@@ -22,6 +21,7 @@ const ProductPage = () => {
         const response = await productApi.getById(id);
         if (response.success && response.data) {
           const apiProduct = response.data;
+          const toImageItem = (i: any) => (typeof i === 'string' ? { detail: { url: i } } : i);
           setProduct({
             id: apiProduct._id,
             _id: apiProduct._id,
@@ -32,8 +32,8 @@ const ProductPage = () => {
             discountPercent: apiProduct.discountPercent,
             category: typeof apiProduct.category === 'string' ? apiProduct.category : apiProduct.category._id,
             brand: apiProduct.brand,
-            images: apiProduct.images,
-            variants: apiProduct.variants,
+            images: Array.isArray(apiProduct.images) ? apiProduct.images.map(toImageItem) : [],
+            variants: Array.isArray(apiProduct.variants) ? apiProduct.variants.map(v => ({ ...v, images: Array.isArray(v.images) ? v.images.map(toImageItem) : [] })) : [],
             specifications: apiProduct.specifications || {},
             tags: apiProduct.tags || [],
             isActive: apiProduct.isActive,
@@ -95,11 +95,11 @@ const ProductPage = () => {
             <div className="relative">
               <Carousel>
                 <CarouselContent>
-                  {product.images.map((src, idx) => (
+                  {product.images.map((img: any, idx) => (
                     <CarouselItem key={idx}>
                       <div className="aspect-square bg-muted flex items-center justify-center">
                         <img
-                          src={src || '/placeholder.svg'}
+                          src={getImageUrl(img)}
                           alt={`${product.name} - ${idx + 1}`}
                           loading="lazy"
                           decoding="async"
@@ -121,7 +121,7 @@ const ProductPage = () => {
               {/* Thumbnails */}
               {product.images.length > 1 && (
                 <div className="mt-2 flex gap-2 overflow-x-auto pb-2">
-                  {product.images.map((src, idx) => (
+                  {product.images.map((img: any, idx) => (
                     <button
                       key={idx}
                       onClick={() => {
@@ -134,7 +134,7 @@ const ProductPage = () => {
                       }}
                       className="w-16 h-16 flex-shrink-0 rounded-md overflow-hidden border border-border"
                     >
-                      <img src={src || '/placeholder.svg'} alt={`thumb-${idx}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                      <img src={getImageUrl(img)} alt={`thumb-${idx}`} loading="lazy" decoding="async" className="w-full h-full object-contain bg-white" />
                     </button>
                   ))}
                 </div>

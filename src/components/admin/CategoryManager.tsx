@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useProducts, CategoryItem } from '@/context/ProductContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trash2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { uploadApi } from '@/services/api';
 
 const CategoryManager = () => {
   const { categories, addCategory, updateCategory, deleteCategory } = useProducts();
@@ -13,6 +14,28 @@ const CategoryManager = () => {
   const [newDisplayName, setNewDisplayName] = useState('');
   const [newImage, setNewImage] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [newFile, setNewFile] = useState<File | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Create a preview when a file is chosen or when URL is entered
+  useEffect(() => {
+    let obj: string | null = null;
+    if (newFile) {
+      obj = URL.createObjectURL(newFile);
+      setPreviewUrl(obj);
+      return () => {
+        if (obj) URL.revokeObjectURL(obj);
+      };
+    }
+
+    if (newImage) {
+      setPreviewUrl(newImage);
+      return;
+    }
+
+    setPreviewUrl(null);
+  }, [newFile, newImage]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +61,8 @@ const CategoryManager = () => {
       setNewId('');
       setNewDisplayName('');
       setNewImage('');
+      setNewFile(null);
+      if (fileRef.current) fileRef.current.value = '';
     } catch (err) {
       toast.error('Failed to save category');
     }
@@ -79,12 +104,66 @@ const CategoryManager = () => {
           </div>
           <div className="flex-1">
             <Label htmlFor="catImage" className="sr-only">Image URL</Label>
-            <Input
-              id="catImage"
-              value={newImage}
-              onChange={(e) => setNewImage(e.target.value)}
-              placeholder="Image URL (optional)"
-            />
+            <div className="flex gap-2 items-center">
+              <Input
+                id="catImage"
+                value={newImage}
+                onChange={(e) => setNewImage(e.target.value)}
+                placeholder="Image URL (optional)"
+              />
+
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setNewFile(e.target.files?.[0] || null)}
+              />
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileRef.current?.click()}
+              >
+                Choose
+              </Button>
+
+              <Button
+                type="button"
+                onClick={async () => {
+                  if (!newFile) {
+                    toast.error('Please choose a file first');
+                    return;
+                  }
+                  try {
+                    const results = await uploadApi.uploadFiles([newFile]);
+                    const first = results && results.length ? results[0] : null;
+                    if (first) {
+                      const url = first.detailUrl || first.thumbUrl || '';
+                      setNewImage(url);
+                      if (first.thumbUrl) setPreviewUrl(first.thumbUrl);
+                      toast.success('Image uploaded');
+                      setNewFile(null);
+                      if (fileRef.current) fileRef.current.value = '';
+                    } else {
+                      throw new Error('No URL returned');
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    toast.error('Upload failed');
+                  }
+                }}
+              >
+                Upload
+              </Button>
+
+              {/* Preview */}
+              {previewUrl ? (
+                <img src={previewUrl} alt="preview" className="h-12 w-12 object-contain rounded ml-2 bg-white" />
+              ) : (
+                <div className="h-12 w-12 bg-secondary/20 rounded ml-2 flex items-center justify-center text-xs text-muted-foreground">No image</div>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button type="submit">
@@ -115,9 +194,12 @@ const CategoryManager = () => {
               key={cat.id}
               className="flex items-center justify-between p-2 bg-secondary/30 rounded-lg"
             >
-              <div>
-                <span className="font-medium">{cat.displayName}</span>
-                <span className="text-xs text-muted-foreground ml-2">({cat.id})</span>
+              <div className="flex items-center gap-3">
+                <img src={cat.image} alt={cat.displayName} className="h-8 w-8 object-contain rounded bg-white" />
+                <div>
+                  <span className="font-medium">{cat.displayName}</span>
+                  <span className="text-xs text-muted-foreground ml-2">({cat.id})</span>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 {cat.id !== 'all' && (
@@ -132,6 +214,7 @@ const CategoryManager = () => {
                         setNewId(cat.id);
                         setNewDisplayName(cat.displayName);
                         setNewImage(cat.image || '');
+                        setPreviewUrl(cat.image || '');
                       }}
                     >
                       <Plus className="h-4 w-4 rotate-45" />

@@ -26,6 +26,20 @@ interface ProductContextType {
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 // Transform API product to frontend Product
+const toImageItem = (i: any) => {
+  if (!i) return { detail: { url: '' } };
+  if (typeof i === 'string') return { detail: { url: i } };
+  // already an object from API, keep fields
+  return {
+    filename: i?.filename,
+    detail: i?.detail ? { filename: i.detail.filename, url: i.detail.url } : (i?.url ? { url: i.url } : undefined),
+    thumb: i?.thumb ? { filename: i.thumb.filename, url: i.thumb.url } : undefined,
+    alt: i?.alt || '',
+    isPrimary: i?.isPrimary || false,
+    uploadedAt: i?.uploadedAt,
+  };
+};
+
 const transformApiProduct = (apiProduct: ApiProduct): Product => ({
   id: apiProduct._id,
   _id: apiProduct._id,
@@ -36,8 +50,8 @@ const transformApiProduct = (apiProduct: ApiProduct): Product => ({
   discountPercent: apiProduct.discountPercent,
   category: typeof apiProduct.category === 'string' ? apiProduct.category : apiProduct.category._id,
   brand: apiProduct.brand,
-  images: apiProduct.images,
-  variants: apiProduct.variants,
+  images: Array.isArray(apiProduct.images) ? apiProduct.images.map(toImageItem) : [],
+  variants: Array.isArray(apiProduct.variants) ? apiProduct.variants.map(v => ({ ...v, images: Array.isArray(v.images) ? v.images.map(toImageItem) : [] })) : [],
   specifications: apiProduct.specifications || {},
   tags: apiProduct.tags || [],
   isActive: apiProduct.isActive,

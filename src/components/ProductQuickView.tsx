@@ -1,4 +1,6 @@
 import { X, Plus, Minus } from 'lucide-react';
+import { useState } from 'react';
+import { getPrimaryImage } from '@/lib/utils';
 import { Product } from '@/data/products';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
@@ -8,8 +10,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-
+} from '@/components/ui/dialog'; import { getImageUrl } from '@/lib/utils';
 interface ProductQuickViewProps {
   product: Product | null;
   open: boolean;
@@ -18,11 +19,13 @@ interface ProductQuickViewProps {
 
 const ProductQuickView = ({ product, open, onClose }: ProductQuickViewProps) => {
   const { addToCart, getItemQuantity, incrementQuantity, decrementQuantity } = useCart();
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   if (!product) return null;
 
   const quantity = getItemQuantity(product.id);
   const hasDiscount = product.discountPercent > 0;
+
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -53,7 +56,7 @@ const ProductQuickView = ({ product, open, onClose }: ProductQuickViewProps) => 
         <div className="grid grid-cols-1 min-h-[40vh]">
           <div className="relative bg-muted flex items-center justify-center p-4">
             <img
-              src={product.images[0]}
+              src={getImageUrl(product.images[selectedIndex]) || getPrimaryImage(product.images)}
               alt={product.name}
               loading="lazy"
               decoding="async"
@@ -76,6 +79,22 @@ const ProductQuickView = ({ product, open, onClose }: ProductQuickViewProps) => 
               </Badge>
             )}
           </div>
+
+          {/* Thumbnails */}
+          {product.images.length > 1 && (
+            <div className="flex gap-2 px-4 pt-2">
+              {product.images.map((img: any, i: number) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setSelectedIndex(i)}
+                  className={`w-12 h-12 rounded overflow-hidden border ${selectedIndex === i ? 'border-primary' : 'border-border'}`}
+                >
+                  <img src={getImageUrl(img)} alt={`thumb-${i}`} className="w-full h-full object-contain bg-white" />
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="p-4 space-y-4 overflow-auto">
             <DialogHeader className="space-y-1">

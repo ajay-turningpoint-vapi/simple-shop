@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { LogOut, Plus, Pencil, Trash2, Search, Package, Tags, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { getPrimaryImage, getImageUrl } from '@/lib/utils';
 import ProductForm from './ProductForm';
 import CategoryManager from './CategoryManager';
 
@@ -34,6 +35,8 @@ const AdminDashboard = () => {
   };
 
   const handleEdit = (product: Product) => {
+    console.log("edit product",product);
+    
     setEditProduct(product);
     setShowForm(true);
   };
@@ -144,53 +147,87 @@ const AdminDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredProducts.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <img
-                          src={product.images[0] || '/placeholder.svg'}
-                          alt={product.name}
-                          loading="lazy"
-                          decoding="async"
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{product.category}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <span className="font-semibold">{formatPrice(product.price)}</span>
-                          {product.discountPercent > 0 && (
-                            <span className="text-xs text-muted-foreground line-through ml-1">
-                              {formatPrice(product.mrp)}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={product.isActive ? 'default' : 'secondary'}>
-                          {product.isActive ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex gap-1 justify-end">
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(product)}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive"
-                            onClick={() => handleDelete(product.id, product.name)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                 
+
+                  {filteredProducts.map((product) => {
+                    return (
+                      <TableRow key={product.id}>
+                        <TableCell>
+                          <div className="flex items-center -space-x-1">
+                            {product.images && product.images.length > 0 ? (
+                              product.images.slice(0, 3).map((src, i) => (
+                                <img
+                                  key={i}
+                                  src={getImageUrl(src)}
+                                  alt={`${product.name}-thumb-${i}`}
+                                  loading="lazy"
+                                  decoding="async"
+                                  className="w-8 h-8 object-contain rounded border border-border bg-white"
+                                />
+                              ))
+                            ) : (
+                              <img src="/placeholder.svg" alt="placeholder" className="w-8 h-8 object-contain rounded bg-white" />
+                            )}
+
+                            {product.images.length > 3 && (
+                              <div className="ml-1 text-xs text-muted-foreground">+{product.images.length - 3}</div>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="font-medium">{product.name}</TableCell>
+
+                        <TableCell>
+                          <Badge variant="secondary">{product.category}</Badge>
+                        </TableCell>
+
+                        <TableCell>
+                          <div>
+                            <span className="font-semibold">{formatPrice(product.price)}</span>
+                            {product.discountPercent > 0 && (
+                              <span className="text-xs text-muted-foreground line-through ml-1">
+                                {formatPrice(product.mrp)}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        <TableCell>
+                          <Badge variant={product.isActive ? 'default' : 'secondary'}>
+                            {product.isActive ? 'Active' : 'Inactive'}
+                          </Badge>
+                        </TableCell>
+
+                        <TableCell className="text-right">
+                          <div className="flex gap-1 justify-end">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                console.log("Edit clicked:", product);
+                                handleEdit(product);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive"
+                              onClick={() => {
+                                console.log("Delete clicked:", product.id, product.name);
+                                handleDelete(product.id, product.name);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+
                 </TableBody>
               </Table>
             </CardContent>
@@ -204,11 +241,11 @@ const AdminDashboard = () => {
               <CardContent className="p-4">
                 <div className="flex gap-3">
                   <img
-                    src={product.images[0] || '/placeholder.svg'}
+                    src={getPrimaryImage(product.images)}
                     alt={product.name}
                     loading="lazy"
                     decoding="async"
-                    className="w-16 h-16 object-cover rounded"
+                    className="w-16 h-16 object-contain rounded bg-white"
                   />
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium truncate">{product.name}</h3>

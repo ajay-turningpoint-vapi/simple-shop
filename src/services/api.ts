@@ -179,12 +179,70 @@ export const categoryApi = {
   },
 };
 
+// ============= UPLOADS API =============
+export interface UploadResponseItem {
+  ok: boolean;
+  originalName?: string;
+  filename?: string;
+  detail?: { filename?: string; url?: string; reused?: boolean };
+  thumb?: { filename?: string; url?: string; reused?: boolean };
+  url?: string; // legacy support
+}
+
+export const uploadApi = {
+  /**
+   * Upload one or more files to the upload service.
+   * Returns an array of objects with `detailUrl` and `thumbUrl` when available.
+   */
+  uploadFiles: async (
+    files: FileList | File[]
+  ): Promise<Array<{ detailUrl?: string; thumbUrl?: string; filename?: string; originalName?: string; reused?: boolean }>> => {
+    const formData = new FormData();
+    Array.from(files).forEach((file) => formData.append('images', file));
+
+    // Build headers but do NOT set Content-Type when sending FormData
+    const headers: HeadersInit = {};
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+    const response = await fetch('http://localhost:5023/api/v1/uploads', {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const err = await response.text().catch(() => response.statusText);
+      throw new Error(err || `Upload failed: ${response.status}`);
+    }
+
+    const data = await response.json().catch(() => ({}));
+    const results: UploadResponseItem[] = Array.isArray(data?.results) ? data.results : [];
+
+    return results.map((r) => ({
+      detailUrl: r?.detail?.url || r?.url,
+      thumbUrl: r?.thumb?.url || null,
+      filename: r?.detail?.filename || r?.thumb?.filename || r?.filename || undefined,
+      originalName: r?.originalName,
+      reused: r?.detail?.reused || r?.thumb?.reused || false,
+    }));
+  },
+};
+
 // ============= PRODUCT API =============
+export interface ApiImage {
+  filename?: string;
+  detail?: { filename?: string; url?: string };
+  thumb?: { filename?: string; url?: string };
+  alt?: string;
+  isPrimary?: boolean;
+  uploadedAt?: string;
+}
+
 export interface ApiProductVariant {
   color: string;
   colorCode?: string;
   stock: number;
-  images: string[];
+  images: ApiImage[] | string[];
   sku?: string;
   isAvailable: boolean;
 }
@@ -198,7 +256,7 @@ export interface ApiProduct {
   discountPercent: number;
   category: string | ApiCategory;
   brand?: string;
-  images: string[];
+  images: ApiImage[] | string[];
   variants: ApiProductVariant[];
   specifications: Record<string, string>;
   tags: string[];
@@ -216,7 +274,7 @@ export interface ProductInput {
   discountPercent?: number;
   category: string;
   brand?: string;
-  images: string[];
+  images: ApiImage[] | string[];
   variants: ApiProductVariant[];
   specifications?: Record<string, string>;
   tags?: string[];
