@@ -302,7 +302,8 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
                   multiple
                   className="hidden"
                   onChange={async (e) => {
-                    const files = e.target.files;
+                    const input = e.currentTarget;
+                    const files = input.files;
                     if (!files || files.length === 0) return;
                     try {
                       const results = await uploadApi.uploadFiles(files);
@@ -315,9 +316,12 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
                     } catch (err) {
                       console.error(err);
                       toast.error('Upload failed');
+                    } finally {
+                      // reset input
+                      if (input) {
+                        input.value = '';
+                      }
                     }
-                    // reset input
-                    e.currentTarget.value = '';
                   }}
                 />
                 <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById('multiUpload')?.click()}>
@@ -349,7 +353,8 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
                   className="hidden"
                   id={`imgfile-${index}`}
                   onChange={async (e) => {
-                    const f = e.target.files?.[0];
+                    const input = e.currentTarget;
+                    const f = input.files?.[0];
                     if (!f) return;
                     const tmp = URL.createObjectURL(f);
                     tmpUrlsRef.current.push(tmp);
@@ -380,7 +385,9 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
                         delete copy[index];
                         return copy;
                       });
-                      e.currentTarget.value = '';
+                      if (input) {
+                        input.value = '';
+                      }
                     }
                   }}
                 />

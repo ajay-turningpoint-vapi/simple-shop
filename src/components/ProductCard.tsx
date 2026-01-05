@@ -82,7 +82,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                           alt={`${product.name} - ${idx + 1}`}
                           loading="lazy"
                           decoding="async"
-                          className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105 bg-white"
+                          className="aspect-square h-full w-full object-contain transition-transform duration-300 group-hover:scale-105 bg-white"
                         />
                       </div>
                     </div>

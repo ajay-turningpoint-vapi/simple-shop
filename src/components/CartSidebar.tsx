@@ -5,6 +5,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { getPrimaryImage } from '@/lib/utils';
+import { useState } from 'react';
+import AddressDialog, { Address } from '@/components/AddressDialog';
 
 const WHATSAPP_NUMBER = '918975944936';
 
@@ -19,6 +21,8 @@ const CartSidebar = () => {
     clearCart,
   } = useCart();
 
+  const [addressDialogOpen, setAddressDialogOpen] = useState(false);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -27,12 +31,7 @@ const CartSidebar = () => {
     }).format(price);
   };
 
-  const handlePlaceOrder = () => {
-    if (items.length === 0) {
-      toast.error('Your cart is empty!');
-      return;
-    }
-
+  const sendOrderViaWhatsApp = (address: Address) => {
     const orderDetails = items
       .map(
         (item) =>
@@ -42,10 +41,13 @@ const CartSidebar = () => {
 
     const totalPrice = formatPrice(getTotalPrice());
 
+    const addressText = `${address.name} (${address.phone})\n${address.line1}${address.line2 ? `, ${address.line2}` : ''}\n${address.city}, ${address.state} - ${address.pincode}`;
+
     const message = encodeURIComponent(
       `🛒 *New Order from ShapeShift Store*\n\n` +
       `*Order Details:*\n${orderDetails}\n\n` +
       `*Total Amount:* ${totalPrice}\n\n` +
+      `*Delivery Address:*\n${addressText}\n\n` +
       `Please confirm my order. Thank you!`
     );
 
@@ -55,6 +57,17 @@ const CartSidebar = () => {
     toast.success('Opening WhatsApp to complete your order!');
     clearCart();
     setIsCartOpen(false);
+  };
+
+  const handlePlaceOrder = () => {
+    if (items.length === 0) {
+      toast.error('Your cart is empty!');
+      return;
+    }
+
+    // Always open address dialog so user can choose/update each time
+    setAddressDialogOpen(true);
+    toast.info('Please confirm your delivery address to continue.');
   };
 
   return (
@@ -182,6 +195,14 @@ const CartSidebar = () => {
           </>
         )}
       </SheetContent>
+      <AddressDialog
+        open={addressDialogOpen}
+        onClose={() => setAddressDialogOpen(false)}
+        onConfirm={(address) => {
+          setAddressDialogOpen(false);
+          sendOrderViaWhatsApp(address);
+        }}
+      />
     </Sheet>
   );
 };

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://3.7.46.178/simple/api/v1';
+const API_BASE_URL = 'http://localhost:5023/api/v1';
 
 // Token management
 let authToken: string | null = localStorage.getItem('auth_token');
@@ -204,7 +204,8 @@ export const uploadApi = {
     const headers: HeadersInit = {};
     if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
-    const response = await fetch('http://localhost:5023/api/v1/uploads', {
+    // Use the same API base URL as the rest of the backend
+    const response = await fetch(`${API_BASE_URL}/uploads`, {
       method: 'POST',
       headers,
       body: formData,
