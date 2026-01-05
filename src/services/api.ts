@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5023/api/v1';
+const API_BASE_URL = 'http://3.7.46.178/simple/api/v1';
 
 // Token management
 let authToken: string | null = localStorage.getItem('auth_token');
