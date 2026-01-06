@@ -251,7 +251,7 @@ const AdminDashboard = () => {
                     <h3 className="font-medium truncate">{product.name}</h3>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="secondary" className="text-xs">{product.category?.length > 10
-                        ? product.category.slice(0, 15) + "…"
+                        ? product.category.slice(0, 10) + "…"
                         : product.category}</Badge>
                       <Badge variant={product.isActive ? 'default' : 'secondary'} className="text-xs">
                         {product.isActive ? 'Active' : 'Inactive'}

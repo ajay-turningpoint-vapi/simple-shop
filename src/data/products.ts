@@ -58,6 +58,7 @@ export interface CategoryItem {
   order?: number;
   isActive: boolean;
   productCount?: number;
+  subcategories?: CategoryItem[];
 }
 
 // Default categories for fallback when API is unavailable

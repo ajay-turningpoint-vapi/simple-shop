@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { uploadApi } from '@/services/api';
 
@@ -251,7 +251,7 @@ const CategoryManager = () => {
                 )}
                 <div>
                   <span className="font-medium">{cat.displayName}</span>
-                  <span className="text-xs text-muted-foreground ml-2">({cat.id})</span>
+                  <span className="text-xs text-muted-foreground ml-2">({cat.id.slice(0, 7)})</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -270,7 +270,7 @@ const CategoryManager = () => {
                         setPreviewUrl(cat.image || '');
                       }}
                     >
-                      <Plus className="h-4 w-4 rotate-45" />
+                      <Pencil className="h-4 w-4" />
                     </Button>
 
                     <Button

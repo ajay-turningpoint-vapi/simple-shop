@@ -83,6 +83,19 @@ const transformApiCategory = (apiCategory: ApiCategory): CategoryItem => {
     imageUrl = apiCategory.image.thumb?.url || apiCategory.image.detail?.url;
   }
 
+  // Extract parentCategory ID (can be string, object, or null)
+  let parentCategoryId: string | null | undefined;
+  if (typeof apiCategory.parentCategory === 'string') {
+    parentCategoryId = apiCategory.parentCategory;
+  } else if (apiCategory.parentCategory && typeof apiCategory.parentCategory === 'object') {
+    parentCategoryId = apiCategory.parentCategory._id;
+  } else {
+    parentCategoryId = apiCategory.parentCategory;
+  }
+
+  // Transform subcategories recursively if they exist
+  const subcategories = apiCategory.subcategories?.map(transformApiCategory);
+
   return {
     id: apiCategory._id,
     _id: apiCategory._id,
@@ -92,12 +105,23 @@ const transformApiCategory = (apiCategory: ApiCategory): CategoryItem => {
     description: apiCategory.description,
     image: imageUrl,
     icon: apiCategory.icon,
-    parentCategory: apiCategory.parentCategory,
+    parentCategory: parentCategoryId,
     level: apiCategory.level,
     order: apiCategory.order,
     isActive: apiCategory.isActive,
     productCount: apiCategory.productCount,
+    subcategories,
   };
+};
+
+// Convert frontend image string to API image format
+// API expects object format, not plain strings
+const convertImageForApi = (image: string | undefined): string | { thumb: { url: string } } | undefined => {
+  if (!image) return undefined;
+  // If it's already an object, return as is (shouldn't happen from frontend, but be safe)
+  if (typeof image !== 'string') return image as any;
+  // Convert string URL to object format that API expects
+  return { thumb: { url: image } };
 };
 
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
@@ -137,10 +161,33 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         const items = extractArrayFromResponse(response as any);
         if (items.length === 0) console.warn('No categories array found in response', response);
         const apiCategories = items.map(transformApiCategory);
-        setCategories([
+        
+        // Organize categories: prefer parent categories with subcategories
+        const processedChildIds = new Set<string>();
+        apiCategories.forEach((cat) => {
+          if (cat.subcategories) {
+            cat.subcategories.forEach((subcat) => {
+              processedChildIds.add(subcat.id);
+            });
+          }
+        });
+        
+        const finalCategories: CategoryItem[] = [
           { id: 'all', name: 'all', displayName: 'All', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop', isActive: true },
-          ...apiCategories,
-        ]);
+        ];
+        
+        apiCategories.forEach((cat) => {
+          if (cat.id === 'all') return;
+          if (cat.subcategories && cat.subcategories.length > 0) {
+            finalCategories.push(cat);
+          } else if (cat.level === 0 || cat.parentCategory === null) {
+            finalCategories.push(cat);
+          } else if (!processedChildIds.has(cat.id)) {
+            finalCategories.push(cat);
+          }
+        });
+        
+        setCategories(finalCategories);
       }
     } catch (err) {
       console.error('Failed to fetch categories:', err);
@@ -177,10 +224,41 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     if (categoriesQuery.data && (categoriesQuery.data as any).success) {
       const items = extractArrayFromResponse(categoriesQuery.data as any);
       const apiCategories = items.map(transformApiCategory);
-      setCategories([
+      
+      // Organize categories: prefer parent categories with subcategories
+      // Filter out child categories that are already in a parent's subcategories
+      const processedChildIds = new Set<string>();
+      
+      // First pass: mark children that are in subcategories
+      apiCategories.forEach((cat) => {
+        if (cat.subcategories) {
+          cat.subcategories.forEach((subcat) => {
+            processedChildIds.add(subcat.id);
+          });
+        }
+      });
+      
+      // Build final list: include "all", then parent categories (with their subcategories)
+      // Skip standalone child categories that are already in a parent's subcategories
+      const finalCategories: CategoryItem[] = [
         { id: 'all', name: 'all', displayName: 'All', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop', isActive: true },
-        ...apiCategories,
-      ]);
+      ];
+      
+      apiCategories.forEach((cat) => {
+        // Include if it's a parent (has subcategories or level 0)
+        // OR if it's a child that's not already in a parent's subcategories
+        if (cat.id === 'all') return; // Skip if "all" is in API response
+        if (cat.subcategories && cat.subcategories.length > 0) {
+          finalCategories.push(cat);
+        } else if (cat.level === 0 || cat.parentCategory === null) {
+          finalCategories.push(cat);
+        } else if (!processedChildIds.has(cat.id)) {
+          // Standalone child not in any parent's subcategories
+          finalCategories.push(cat);
+        }
+      });
+      
+      setCategories(finalCategories);
     }
   }, [categoriesQuery.data]);
 
@@ -261,7 +339,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         name: category.name,
         displayName: category.displayName,
         description: category.description,
-        image: category.image,
+        image: convertImageForApi(category.image),
         icon: category.icon,
         parentCategory: category.parentCategory,
         level: category.level,
@@ -282,7 +360,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       const response = await categoryApi.update(id, {
         displayName: updates.displayName,
         description: updates.description,
-        image: updates.image,
+        image: updates.image !== undefined ? convertImageForApi(updates.image) : undefined,
         icon: updates.icon,
         parentCategory: updates.parentCategory,
         level: updates.level,

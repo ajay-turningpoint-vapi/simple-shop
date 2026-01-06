@@ -43,30 +43,39 @@ const ProductGrid = () => {
   });
 
   // Transform ApiProduct to Product shape (lightweight inline mapping)
-  const transformApiProductInline = (apiProduct: any) => ({
-    id: apiProduct._id,
-    _id: apiProduct._id,
-    name: apiProduct.name,
-    description: apiProduct.description,
-    mrp: apiProduct.mrp,
-    price: apiProduct.price,
-    discountPercent: apiProduct.discountPercent,
-    category: typeof apiProduct.category === 'string' ? apiProduct.category : apiProduct.category._id,
-    brand: apiProduct.brand,
-    images: apiProduct.images,
-    variants: apiProduct.variants,
-    specifications: apiProduct.specifications || {},
-    tags: apiProduct.tags || [],
-    isActive: apiProduct.isActive,
-    createdAt: apiProduct.createdAt,
-    updatedAt: apiProduct.updatedAt,
-  });
+  const transformApiProductInline = (apiProduct: any) => {
+    if (!apiProduct || !apiProduct._id) {
+      // Skip null/undefined products or products without _id
+      return null;
+    }
+    
+    return {
+      id: apiProduct._id,
+      _id: apiProduct._id,
+      name: apiProduct.name,
+      description: apiProduct.description,
+      mrp: apiProduct.mrp,
+      price: apiProduct.price,
+      discountPercent: apiProduct.discountPercent,
+      category: typeof apiProduct.category === 'string' 
+        ? apiProduct.category 
+        : (apiProduct.category?._id || apiProduct.category || 'all'),
+      brand: apiProduct.brand,
+      images: apiProduct.images,
+      variants: apiProduct.variants,
+      specifications: apiProduct.specifications || {},
+      tags: apiProduct.tags || [],
+      isActive: apiProduct.isActive,
+      createdAt: apiProduct.createdAt,
+      updatedAt: apiProduct.updatedAt,
+    };
+  };
 
   const filteredProducts = useMemo(() => {
     if (!productsQuery.data || !(productsQuery.data as any).success) return [];
     const items = extractArrayFromResponse(productsQuery.data as any);
     if (items.length === 0) return [];
-    return items.map(transformApiProductInline);
+    return items.map(transformApiProductInline).filter((product): product is NonNullable<typeof product> => product !== null);
   }, [productsQuery.data]);
 
   return (

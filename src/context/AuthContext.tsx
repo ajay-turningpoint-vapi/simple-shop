@@ -23,29 +23,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Check auth status on mount and provide revalidate
   const revalidate = async () => {
     setLoading(true);
+    setAuthError(null);
     const token = getAuthToken();
-    if (token) {
-      try {
-        const response = await authApi.getProfile();
-        if (response.success && response.user) {
-          setUser(response.user);
-          setIsAuthenticated(true);
-          setAuthError(null);
-        } else {
-          // Token invalid, clear it
-          setAuthToken(null);
-          setIsAuthenticated(false);
-          setAuthError('Token invalid or profile not returned');
-        }
-      } catch (error: any) {
-        // Token invalid or expired or network error
+    
+    if (!token) {
+      setIsAuthenticated(false);
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
+    // If we have a token, optimistically assume authenticated
+    // This prevents showing login screen while verifying
+    setIsAuthenticated(true);
+    
+    try {
+      const response = await authApi.getProfile();
+      if (response && response.user) {
+        setUser(response.user);
+        setIsAuthenticated(true);
+        setAuthError(null);
+      } else {
+        // Token exists but profile not returned - might be invalid
+        // But don't clear it yet, might be API format issue
+        console.warn('Profile response missing user data:', response);
+        setIsAuthenticated(true); // Keep authenticated if we have token
+        setAuthError(null);
+      }
+    } catch (error: any) {
+      // Only clear token on authentication errors (401, 403)
+      // Don't clear on network errors or other errors - token might still be valid
+      const status = error?.status || error?.response?.status;
+      const isAuthError = status === 401 || status === 403 ||
+                         error?.message?.includes('401') || 
+                         error?.message?.includes('403') ||
+                         error?.message?.includes('Unauthorized') ||
+                         error?.message?.includes('Forbidden');
+      
+      if (isAuthError) {
+        // Token is invalid or expired - clear it
         setAuthToken(null);
         setIsAuthenticated(false);
-        setAuthError(error?.message || String(error));
+        setUser(null);
+        setAuthError(error?.message || 'Authentication failed');
+      } else {
+        // Network error or other error - keep token and assume still authenticated
+        // This prevents clearing valid tokens due to temporary network issues
+        setIsAuthenticated(true); // Keep authenticated if we have a token
+        setAuthError(null); // Don't show error for network issues
+        console.warn('Failed to verify session, but keeping token:', error?.message);
       }
-    } else {
-      setAuthError(null);
-      setIsAuthenticated(false);
     }
     setLoading(false);
   };

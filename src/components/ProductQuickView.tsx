@@ -1,24 +1,30 @@
-import { X, Plus, Minus } from 'lucide-react';
-import { useState } from 'react';
-import { getPrimaryImage } from '@/lib/utils';
-import { Product } from '@/data/products';
-import { useCart } from '@/context/CartContext';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { X, Plus, Minus } from "lucide-react";
+import { useState } from "react";
+import { getPrimaryImage } from "@/lib/utils";
+import { Product } from "@/data/products";
+import { useCart } from "@/context/CartContext";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'; import { getImageUrl } from '@/lib/utils';
+} from "@/components/ui/dialog";
+import { getImageUrl } from "@/lib/utils";
 interface ProductQuickViewProps {
   product: Product | null;
   open: boolean;
   onClose: () => void;
 }
 
-const ProductQuickView = ({ product, open, onClose }: ProductQuickViewProps) => {
-  const { addToCart, getItemQuantity, incrementQuantity, decrementQuantity } = useCart();
+const ProductQuickView = ({
+  product,
+  open,
+  onClose,
+}: ProductQuickViewProps) => {
+  const { addToCart, getItemQuantity, incrementQuantity, decrementQuantity } =
+    useCart();
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   if (!product) return null;
@@ -26,11 +32,10 @@ const ProductQuickView = ({ product, open, onClose }: ProductQuickViewProps) => 
   const quantity = getItemQuantity(product.id);
   const hasDiscount = product.discountPercent > 0;
 
-
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
       maximumFractionDigits: 0,
     }).format(price);
   };
@@ -41,7 +46,7 @@ const ProductQuickView = ({ product, open, onClose }: ProductQuickViewProps) => 
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="w-full h-screen sm:max-w-lg sm:rounded-xl p-0 gap-0 rounded-none overflow-hidden">
+      <DialogContent className="w-full sm:max-w-lg sm:rounded-xl p-0 gap-0 rounded-none max-h-[100vh] overflow-y-auto">
         {/* Close button (visible and accessible on all viewports) */}
         <Button
           size="icon"
@@ -53,22 +58,25 @@ const ProductQuickView = ({ product, open, onClose }: ProductQuickViewProps) => 
           <X className="h-4 w-4" />
         </Button>
 
-        <div className="grid grid-cols-1 min-h-[40vh]">
+        <div className="grid grid-cols-1">
           <div className="relative bg-muted flex items-center justify-center p-4">
             <img
-              src={getImageUrl(product.images[selectedIndex]) || getPrimaryImage(product.images)}
+              src={
+                getImageUrl(product.images[selectedIndex]) ||
+                getPrimaryImage(product.images)
+              }
               alt={product.name}
               loading="lazy"
               decoding="async"
               className="w-full object-contain max-h-[55vh] md:max-h-[70vh]"
             />
 
-            {product.tags.includes('bestseller') && (
+            {product.tags.includes("bestseller") && (
               <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground">
                 Bestseller
               </Badge>
             )}
-            {product.tags.includes('new') && (
+            {product.tags.includes("new") && (
               <Badge className="absolute top-3 left-3 bg-green-600 text-white">
                 New
               </Badge>
@@ -88,15 +96,21 @@ const ProductQuickView = ({ product, open, onClose }: ProductQuickViewProps) => 
                   key={i}
                   type="button"
                   onClick={() => setSelectedIndex(i)}
-                  className={`w-12 h-12 rounded overflow-hidden border ${selectedIndex === i ? 'border-primary' : 'border-border'}`}
+                  className={`w-12 h-12 rounded overflow-hidden border ${
+                    selectedIndex === i ? "border-primary" : "border-border"
+                  }`}
                 >
-                  <img src={getImageUrl(img)} alt={`thumb-${i}`} className="w-full h-full object-contain bg-white" />
+                  <img
+                    src={getImageUrl(img)}
+                    alt={`thumb-${i}`}
+                    className="w-full h-full object-contain bg-white"
+                  />
                 </button>
               ))}
             </div>
           )}
 
-          <div className="p-4 space-y-4 overflow-auto">
+          <div className="p-4 space-y-4">
             <DialogHeader className="space-y-1">
               <DialogTitle className="font-display text-xl font-bold leading-tight">
                 {product.name}
@@ -138,12 +152,16 @@ const ProductQuickView = ({ product, open, onClose }: ProductQuickViewProps) => 
               <div className="space-y-2">
                 <span className="text-sm font-medium">Specifications:</span>
                 <div className="grid grid-cols-2 gap-2">
-                  {Object.entries(product.specifications).map(([key, value]) => (
-                    <div key={key} className="text-xs">
-                      <span className="text-muted-foreground capitalize">{key}: </span>
-                      <span className="font-medium">{value}</span>
-                    </div>
-                  ))}
+                  {Object.entries(product.specifications).map(
+                    ([key, value]) => (
+                      <div key={key} className="text-xs">
+                        <span className="text-muted-foreground capitalize">
+                          {key}:{" "}
+                        </span>
+                        <span className="font-medium">{value}</span>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             )}

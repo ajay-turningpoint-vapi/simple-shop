@@ -39,7 +39,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <>
       <div className="group relative bg-card rounded-lg sm:rounded-xl overflow-hidden border border-border card-hover animate-fade-in">
-        {/* {product.tags.includes('bestseller') && (
+        {product.tags.includes('bestseller') && (
           <Badge className="absolute top-1 left-1 sm:top-3 sm:left-3 z-10 bg-primary text-primary-foreground text-[8px] sm:text-xs px-1 sm:px-2 py-0">
             Best
           </Badge>
@@ -48,7 +48,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <Badge className="absolute top-1 left-1 sm:top-3 sm:left-3 z-10 bg-green-600 text-white text-[8px] sm:text-xs px-1 sm:px-2 py-0">
             New
           </Badge>
-        )} */}
+        )}
         {hasDiscount && (
           <Badge className="absolute top-1 right-1 sm:top-3 sm:right-3 z-10 bg-destructive text-destructive-foreground text-[8px] sm:text-xs px-1 sm:px-2 py-0">
             {product.discountPercent}%

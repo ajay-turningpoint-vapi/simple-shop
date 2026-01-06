@@ -220,6 +220,7 @@ const ProductForm = ({ product, open, onClose }: ProductFormProps) => {
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               required
               rows={3}
+              minLength={50}
             />
           </div>
 

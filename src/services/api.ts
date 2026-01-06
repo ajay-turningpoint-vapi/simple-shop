@@ -2,7 +2,12 @@
 const API_BASE_URL = 'http://localhost:5023/api/v1';
 
 // Token management
-let authToken: string | null = localStorage.getItem('auth_token');
+let authToken: string | null = null;
+
+// Initialize token from localStorage on module load
+if (typeof window !== 'undefined') {
+  authToken = localStorage.getItem('auth_token');
+}
 
 export const setAuthToken = (token: string | null) => {
   authToken = token;
@@ -13,14 +18,27 @@ export const setAuthToken = (token: string | null) => {
   }
 };
 
-export const getAuthToken = () => authToken;
+// Always read from localStorage to ensure we have the latest token
+// This is important after page refreshes
+export const getAuthToken = () => {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('auth_token');
+    if (stored !== authToken) {
+      authToken = stored;
+    }
+  }
+  return authToken;
+};
 
 const getHeaders = (includeAuth = true): HeadersInit => {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };
-  if (includeAuth && authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`;
+  if (includeAuth) {
+    const token = getAuthToken(); // Always get fresh token from localStorage
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
   }
   return headers;
 };
@@ -88,7 +106,21 @@ export const authApi = {
       method: 'GET',
       headers: getHeaders(),
     });
-    return handleResponse(response);
+    // Store status code for error handling
+    if (!response.ok) {
+      const error: any = await response.json().catch(() => ({ message: 'Request failed' }));
+      error.status = response.status;
+      throw error;
+    }
+    // Be permissive about response shape as APIs may nest user under data
+    const data = await response.json();
+    const user = data?.user || data?.data?.user;
+    const success = data?.success ?? true;
+    
+    return {
+      success,
+      user,
+    } as { success: boolean; user: User };
   },
 
   changePassword: async (currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
@@ -120,7 +152,12 @@ export interface ApiCategory {
     uploadedAt?: string;
   };
   icon?: string;
-  parentCategory?: string | null;
+  parentCategory?: string | null | {
+    _id: string;
+    name: string;
+    displayName: string;
+    id?: string;
+  };
   level: number;
   order: number;
   isActive: boolean;
@@ -128,13 +165,20 @@ export interface ApiCategory {
   productCount: number;
   createdAt: string;
   updatedAt: string;
+  subcategories?: ApiCategory[];
 }
 
 export interface CategoryInput {
   name: string;
   displayName: string;
   description?: string;
-  image?: string;
+  image?: string | {
+    detail?: { filename?: string; url?: string; reused?: boolean };
+    thumb?: { filename?: string; url?: string; reused?: boolean };
+    filename?: string;
+    alt?: string;
+    uploadedAt?: string;
+  };
   icon?: string;
   parentCategory?: string | null;
   level?: number;
