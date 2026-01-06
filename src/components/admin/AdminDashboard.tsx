@@ -35,8 +35,8 @@ const AdminDashboard = () => {
   };
 
   const handleEdit = (product: Product) => {
-    console.log("edit product",product);
-    
+    console.log("edit product", product);
+
     setEditProduct(product);
     setShowForm(true);
   };
@@ -147,7 +147,7 @@ const AdminDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                 
+
 
                   {filteredProducts.map((product) => {
                     return (
@@ -250,7 +250,9 @@ const AdminDashboard = () => {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium truncate">{product.name}</h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary" className="text-xs">{product.category}</Badge>
+                      <Badge variant="secondary" className="text-xs">{product.category?.length > 10
+                        ? product.category.slice(0, 15) + "…"
+                        : product.category}</Badge>
                       <Badge variant={product.isActive ? 'default' : 'secondary'} className="text-xs">
                         {product.isActive ? 'Active' : 'Inactive'}
                       </Badge>
@@ -281,6 +283,8 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           ))}
+
+
         </div>
 
         {filteredProducts.length === 0 && (

@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://3.7.46.178/simple/api/v1';
+// const API_BASE_URL = 'http://3.7.46.178/simple/api/v1';
+const API_BASE_URL = 'http://localhost:5023/api/v1';
 
 // Token management
 let authToken: string | null = localStorage.getItem('auth_token');
@@ -111,7 +112,13 @@ export interface ApiCategory {
   displayName: string;
   slug: string;
   description?: string;
-  image?: string;
+  image?: string | {
+    detail?: { filename?: string; url?: string; reused?: boolean };
+    thumb?: { filename?: string; url?: string; reused?: boolean };
+    filename?: string;
+    alt?: string;
+    uploadedAt?: string;
+  };
   icon?: string;
   parentCategory?: string | null;
   level: number;

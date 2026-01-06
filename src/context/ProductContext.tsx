@@ -40,41 +40,65 @@ const toImageItem = (i: any) => {
   };
 };
 
-const transformApiProduct = (apiProduct: ApiProduct): Product => ({
-  id: apiProduct._id,
-  _id: apiProduct._id,
-  name: apiProduct.name,
-  description: apiProduct.description,
-  mrp: apiProduct.mrp,
-  price: apiProduct.price,
-  discountPercent: apiProduct.discountPercent,
-  category: typeof apiProduct.category === 'string' ? apiProduct.category : apiProduct.category._id,
-  brand: apiProduct.brand,
-  images: Array.isArray(apiProduct.images) ? apiProduct.images.map(toImageItem) : [],
-  variants: Array.isArray(apiProduct.variants) ? apiProduct.variants.map(v => ({ ...v, images: Array.isArray(v.images) ? v.images.map(toImageItem) : [] })) : [],
-  specifications: apiProduct.specifications || {},
-  tags: apiProduct.tags || [],
-  isActive: apiProduct.isActive,
-  createdAt: apiProduct.createdAt,
-  updatedAt: apiProduct.updatedAt,
-});
+const transformApiProduct = (apiProduct: ApiProduct | null): Product | null => {
+  if (!apiProduct || !apiProduct._id) {
+    return null;
+  }
+
+  // Handle category - can be string, object with _id, or null
+  let categoryId: string = 'other';
+  if (typeof apiProduct.category === 'string') {
+    categoryId = apiProduct.category;
+  } else if (apiProduct.category && typeof apiProduct.category === 'object' && apiProduct.category._id) {
+    categoryId = apiProduct.category._id;
+  }
+
+  return {
+    id: apiProduct._id,
+    _id: apiProduct._id,
+    name: apiProduct.name,
+    description: apiProduct.description,
+    mrp: apiProduct.mrp,
+    price: apiProduct.price,
+    discountPercent: apiProduct.discountPercent,
+    category: categoryId,
+    brand: apiProduct.brand,
+    images: Array.isArray(apiProduct.images) ? apiProduct.images.map(toImageItem) : [],
+    variants: Array.isArray(apiProduct.variants) ? apiProduct.variants.map(v => ({ ...v, images: Array.isArray(v.images) ? v.images.map(toImageItem) : [] })) : [],
+    specifications: apiProduct.specifications || {},
+    tags: apiProduct.tags || [],
+    isActive: apiProduct.isActive,
+    createdAt: apiProduct.createdAt,
+    updatedAt: apiProduct.updatedAt,
+  };
+};
 
 // Transform API category to frontend CategoryItem
-const transformApiCategory = (apiCategory: ApiCategory): CategoryItem => ({
-  id: apiCategory._id,
-  _id: apiCategory._id,
-  name: apiCategory.name,
-  displayName: apiCategory.displayName,
-  slug: apiCategory.slug,
-  description: apiCategory.description,
-  image: apiCategory.image,
-  icon: apiCategory.icon,
-  parentCategory: apiCategory.parentCategory,
-  level: apiCategory.level,
-  order: apiCategory.order,
-  isActive: apiCategory.isActive,
-  productCount: apiCategory.productCount,
-});
+const transformApiCategory = (apiCategory: ApiCategory): CategoryItem => {
+  // Extract thumb URL from image object if it's an object, otherwise use as string
+  let imageUrl: string | undefined;
+  if (typeof apiCategory.image === 'string') {
+    imageUrl = apiCategory.image;
+  } else if (apiCategory.image && typeof apiCategory.image === 'object') {
+    imageUrl = apiCategory.image.thumb?.url || apiCategory.image.detail?.url;
+  }
+
+  return {
+    id: apiCategory._id,
+    _id: apiCategory._id,
+    name: apiCategory.name,
+    displayName: apiCategory.displayName,
+    slug: apiCategory.slug,
+    description: apiCategory.description,
+    image: imageUrl,
+    icon: apiCategory.icon,
+    parentCategory: apiCategory.parentCategory,
+    level: apiCategory.level,
+    order: apiCategory.order,
+    isActive: apiCategory.isActive,
+    productCount: apiCategory.productCount,
+  };
+};
 
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -96,7 +120,8 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       const response = await queryClient.fetchQuery({ queryKey: ['products', params], queryFn: () => productApi.getAll(params) });
       if ((response as any).success) {
         const items = extractArrayFromResponse(response as any);
-        setProducts(items.map(transformApiProduct));
+        const transformed = items.map(transformApiProduct).filter((p): p is Product => p !== null);
+        setProducts(transformed);
       }
     } catch (err) {
       console.error('Failed to fetch products:', err);
@@ -141,7 +166,8 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       if (items.length === 0) {
         console.warn('No products array found in response', productsQuery.data);
       }
-      setProducts(items.map(transformApiProduct));
+      const transformed = items.map(transformApiProduct).filter((p): p is Product => p !== null);
+      setProducts(transformed);
     } else if (productsQuery.isError && productsQuery.error) {
       setError((productsQuery.error as Error).message);
     }

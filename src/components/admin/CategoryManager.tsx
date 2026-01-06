@@ -17,15 +17,30 @@ const CategoryManager = () => {
   const [newFile, setNewFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const tmpUrlsRef = useRef<string[]>([]);
+
+  // Cleanup any leftover object URLs on unmount
+  useEffect(() => {
+    return () => {
+      tmpUrlsRef.current.forEach((u) => {
+        try { URL.revokeObjectURL(u); } catch (e) { /* ignore */ }
+      });
+      tmpUrlsRef.current = [];
+    };
+  }, []);
 
   // Create a preview when a file is chosen or when URL is entered
   useEffect(() => {
     let obj: string | null = null;
     if (newFile) {
       obj = URL.createObjectURL(newFile);
+      tmpUrlsRef.current.push(obj);
       setPreviewUrl(obj);
       return () => {
-        if (obj) URL.revokeObjectURL(obj);
+        if (obj) {
+          try { URL.revokeObjectURL(obj); } catch (e) { /* ignore */ }
+          tmpUrlsRef.current = tmpUrlsRef.current.filter(u => u !== obj);
+        }
       };
     }
 
@@ -47,6 +62,7 @@ const CategoryManager = () => {
     const id = newId.toLowerCase().replace(/\s+/g, '-');
     const name = id;
     const image = newImage || 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=100&h=100&fit=crop';
+    const input = fileRef.current;
 
     try {
       if (editingId) {
@@ -62,9 +78,19 @@ const CategoryManager = () => {
       setNewDisplayName('');
       setNewImage('');
       setNewFile(null);
-      if (fileRef.current) fileRef.current.value = '';
     } catch (err) {
       toast.error('Failed to save category');
+    } finally {
+      // Cleanup: revoke temporary preview URL if it's an object URL
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        try { URL.revokeObjectURL(previewUrl); } catch (e) { /* ignore */ }
+        tmpUrlsRef.current = tmpUrlsRef.current.filter(u => u !== previewUrl);
+      }
+      setPreviewUrl(null);
+      // Reset input value after async operations
+      if (input) {
+        input.value = '';
+      }
     }
   };
 
@@ -117,7 +143,10 @@ const CategoryManager = () => {
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={(e) => setNewFile(e.target.files?.[0] || null)}
+                onChange={(e) => {
+                  const input = e.currentTarget;
+                  setNewFile(input.files?.[0] || null);
+                }}
               />
 
               <Button
@@ -131,26 +160,38 @@ const CategoryManager = () => {
               <Button
                 type="button"
                 onClick={async () => {
+                  const input = fileRef.current;
                   if (!newFile) {
                     toast.error('Please choose a file first');
                     return;
                   }
+                  // Store current preview URL for cleanup
+                  const currentPreview = previewUrl;
                   try {
                     const results = await uploadApi.uploadFiles([newFile]);
                     const first = results && results.length ? results[0] : null;
-                    if (first) {
-                      const url = first.detailUrl || first.thumbUrl || '';
-                      setNewImage(url);
-                      if (first.thumbUrl) setPreviewUrl(first.thumbUrl);
+                    if (first && first.thumbUrl) {
+                      // Use only thumb URL for category images
+                      setNewImage(first.thumbUrl);
+                      setPreviewUrl(first.thumbUrl);
                       toast.success('Image uploaded');
                       setNewFile(null);
-                      if (fileRef.current) fileRef.current.value = '';
                     } else {
-                      throw new Error('No URL returned');
+                      throw new Error('No thumb URL returned from upload');
                     }
                   } catch (err) {
                     console.error(err);
                     toast.error('Upload failed');
+                  } finally {
+                    // Cleanup: revoke temporary preview URL if it was an object URL
+                    if (currentPreview && currentPreview.startsWith('blob:')) {
+                      try { URL.revokeObjectURL(currentPreview); } catch (e) { /* ignore */ }
+                      tmpUrlsRef.current = tmpUrlsRef.current.filter(u => u !== currentPreview);
+                    }
+                    // Reset input value after async operations
+                    if (input) {
+                      input.value = '';
+                    }
                   }
                 }}
               >
@@ -177,10 +218,18 @@ const CategoryManager = () => {
             </Button>
             {editingId && (
               <Button type="button" variant="ghost" onClick={() => {
+                // Cleanup temporary preview URL if it's an object URL
+                if (previewUrl && previewUrl.startsWith('blob:')) {
+                  try { URL.revokeObjectURL(previewUrl); } catch (e) { /* ignore */ }
+                  tmpUrlsRef.current = tmpUrlsRef.current.filter(u => u !== previewUrl);
+                }
                 setEditingId(null);
                 setNewId('');
                 setNewDisplayName('');
                 setNewImage('');
+                setNewFile(null);
+                setPreviewUrl(null);
+                if (fileRef.current) fileRef.current.value = '';
               }}>
                 Cancel
               </Button>
@@ -195,7 +244,11 @@ const CategoryManager = () => {
               className="flex items-center justify-between p-2 bg-secondary/30 rounded-lg"
             >
               <div className="flex items-center gap-3">
-                <img src={cat.image} alt={cat.displayName} className="h-8 w-8 object-contain rounded bg-white" />
+                {cat.image ? (
+                  <img src={cat.image} alt={cat.displayName} className="h-8 w-8 object-contain rounded bg-white" />
+                ) : (
+                  <div className="h-8 w-8 bg-secondary/20 rounded flex items-center justify-center text-xs text-muted-foreground">No image</div>
+                )}
                 <div>
                   <span className="font-medium">{cat.displayName}</span>
                   <span className="text-xs text-muted-foreground ml-2">({cat.id})</span>

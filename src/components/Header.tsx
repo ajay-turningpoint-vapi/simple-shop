@@ -21,15 +21,7 @@ const Header = () => {
             </span>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="#products" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Products
-            </a>
-            <a href="#categories" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Categories
-            </a>
-          </nav>
+      
 
           <div className="flex items-center gap-2">
             <Button
@@ -46,15 +38,7 @@ const Header = () => {
               )}
             </Button>
 
-            {/* Mobile Menu Toggle */}
-            {/* <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden h-9 w-9"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button> */}
+      
           </div>
         </div>
 
