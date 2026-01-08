@@ -1,8 +1,20 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Product, ProductVariant, CategoryItem } from '@/data/products';
-import { productApi, categoryApi, ApiProduct, ApiCategory } from '@/services/api';
-import { extractArrayFromResponse } from '@/lib/utils';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Product, ProductVariant, CategoryItem } from "@/data/products";
+import {
+  productApi,
+  categoryApi,
+  ApiProduct,
+  ApiCategory,
+} from "@/services/api";
+import { extractArrayFromResponse } from "@/lib/utils";
 
 export type { Product, ProductVariant, CategoryItem };
 export type Category = string;
@@ -12,29 +24,43 @@ interface ProductContextType {
   categories: CategoryItem[];
   loading: boolean;
   error: string | null;
-  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  addProduct: (
+    product: Omit<Product, "id" | "createdAt" | "updatedAt">
+  ) => Promise<void>;
   updateProduct: (id: string, product: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   addCategory: (category: CategoryItem) => Promise<void>;
-  updateCategory: (id: string, category: Partial<CategoryItem>) => Promise<void>;
+  updateCategory: (
+    id: string,
+    category: Partial<CategoryItem>
+  ) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
   getActiveProducts: () => Product[];
-  refreshProducts: (params?: import('@/services/api').ProductQueryParams) => Promise<void>;
+  refreshProducts: (
+    params?: import("@/services/api").ProductQueryParams
+  ) => Promise<void>;
   refreshCategories: () => Promise<void>;
+  getAllCategoriesFlat: () => CategoryItem[];
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 // Transform API product to frontend Product
 const toImageItem = (i: any) => {
-  if (!i) return { detail: { url: '' } };
-  if (typeof i === 'string') return { detail: { url: i } };
+  if (!i) return { detail: { url: "" } };
+  if (typeof i === "string") return { detail: { url: i } };
   // already an object from API, keep fields
   return {
     filename: i?.filename,
-    detail: i?.detail ? { filename: i.detail.filename, url: i.detail.url } : (i?.url ? { url: i.url } : undefined),
-    thumb: i?.thumb ? { filename: i.thumb.filename, url: i.thumb.url } : undefined,
-    alt: i?.alt || '',
+    detail: i?.detail
+      ? { filename: i.detail.filename, url: i.detail.url }
+      : i?.url
+      ? { url: i.url }
+      : undefined,
+    thumb: i?.thumb
+      ? { filename: i.thumb.filename, url: i.thumb.url }
+      : undefined,
+    alt: i?.alt || "",
     isPrimary: i?.isPrimary || false,
     uploadedAt: i?.uploadedAt,
   };
@@ -46,10 +72,14 @@ const transformApiProduct = (apiProduct: ApiProduct | null): Product | null => {
   }
 
   // Handle category - can be string, object with _id, or null
-  let categoryId: string = 'other';
-  if (typeof apiProduct.category === 'string') {
+  let categoryId: string = "other";
+  if (typeof apiProduct.category === "string") {
     categoryId = apiProduct.category;
-  } else if (apiProduct.category && typeof apiProduct.category === 'object' && apiProduct.category._id) {
+  } else if (
+    apiProduct.category &&
+    typeof apiProduct.category === "object" &&
+    apiProduct.category._id
+  ) {
     categoryId = apiProduct.category._id;
   }
 
@@ -63,8 +93,15 @@ const transformApiProduct = (apiProduct: ApiProduct | null): Product | null => {
     discountPercent: apiProduct.discountPercent,
     category: categoryId,
     brand: apiProduct.brand,
-    images: Array.isArray(apiProduct.images) ? apiProduct.images.map(toImageItem) : [],
-    variants: Array.isArray(apiProduct.variants) ? apiProduct.variants.map(v => ({ ...v, images: Array.isArray(v.images) ? v.images.map(toImageItem) : [] })) : [],
+    images: Array.isArray(apiProduct.images)
+      ? apiProduct.images.map(toImageItem)
+      : [],
+    variants: Array.isArray(apiProduct.variants)
+      ? apiProduct.variants.map((v) => ({
+          ...v,
+          images: Array.isArray(v.images) ? v.images.map(toImageItem) : [],
+        }))
+      : [],
     specifications: apiProduct.specifications || {},
     tags: apiProduct.tags || [],
     isActive: apiProduct.isActive,
@@ -77,17 +114,20 @@ const transformApiProduct = (apiProduct: ApiProduct | null): Product | null => {
 const transformApiCategory = (apiCategory: ApiCategory): CategoryItem => {
   // Extract thumb URL from image object if it's an object, otherwise use as string
   let imageUrl: string | undefined;
-  if (typeof apiCategory.image === 'string') {
+  if (typeof apiCategory.image === "string") {
     imageUrl = apiCategory.image;
-  } else if (apiCategory.image && typeof apiCategory.image === 'object') {
+  } else if (apiCategory.image && typeof apiCategory.image === "object") {
     imageUrl = apiCategory.image.thumb?.url || apiCategory.image.detail?.url;
   }
 
   // Extract parentCategory ID (can be string, object, or null)
   let parentCategoryId: string | null | undefined;
-  if (typeof apiCategory.parentCategory === 'string') {
+  if (typeof apiCategory.parentCategory === "string") {
     parentCategoryId = apiCategory.parentCategory;
-  } else if (apiCategory.parentCategory && typeof apiCategory.parentCategory === 'object') {
+  } else if (
+    apiCategory.parentCategory &&
+    typeof apiCategory.parentCategory === "object"
+  ) {
     parentCategoryId = apiCategory.parentCategory._id;
   } else {
     parentCategoryId = apiCategory.parentCategory;
@@ -116,10 +156,12 @@ const transformApiCategory = (apiCategory: ApiCategory): CategoryItem => {
 
 // Convert frontend image string to API image format
 // API expects object format, not plain strings
-const convertImageForApi = (image: string | undefined): string | { thumb: { url: string } } | undefined => {
+const convertImageForApi = (
+  image: string | undefined
+): string | { thumb: { url: string } } | undefined => {
   if (!image) return undefined;
   // If it's already an object, return as is (shouldn't happen from frontend, but be safe)
-  if (typeof image !== 'string') return image as any;
+  if (typeof image !== "string") return image as any;
   // Convert string URL to object format that API expects
   return { thumb: { url: image } };
 };
@@ -127,41 +169,60 @@ const convertImageForApi = (image: string | undefined): string | { thumb: { url:
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([
-    { id: 'all', name: 'all', displayName: 'All', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop', isActive: true },
+    {
+      id: "all",
+      name: "all",
+      displayName: "All",
+      image:
+        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop",
+      isActive: true,
+    },
   ]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-
   // Use shared extractor for API response arrays
   // (see src/lib/utils.ts)
 
-
   // Fetch products from API
-  const refreshProducts = useCallback(async (params?: import('@/services/api').ProductQueryParams) => {
-    try {
-      const response = await queryClient.fetchQuery({ queryKey: ['products', params], queryFn: () => productApi.getAll(params) });
-      if ((response as any).success) {
-        const items = extractArrayFromResponse(response as any);
-        const transformed = items.map(transformApiProduct).filter((p): p is Product => p !== null);
-        setProducts(transformed);
+  const refreshProducts = useCallback(
+    async (params?: import("@/services/api").ProductQueryParams) => {
+      try {
+        const response = await queryClient.fetchQuery({
+          queryKey: ["products", params],
+          queryFn: () => productApi.getAll(params),
+        });
+        if ((response as any).success) {
+          const items = extractArrayFromResponse(response as any);
+          const transformed = items
+            .map(transformApiProduct)
+            .filter((p): p is Product => p !== null);
+          setProducts(transformed);
+        }
+      } catch (err) {
+        console.error("Failed to fetch products:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch products"
+        );
       }
-    } catch (err) {
-      console.error('Failed to fetch products:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch products');
-    }
-  }, [queryClient]);
+    },
+    [queryClient]
+  );
 
   // Fetch categories from API
   const refreshCategories = useCallback(async () => {
     try {
-      const response = await queryClient.fetchQuery({ queryKey: ['categories'], queryFn: () => categoryApi.getAll() });
+      const response = await queryClient.fetchQuery({
+        queryKey: ["categories"],
+        queryFn: () => categoryApi.getAll(),
+      });
       if ((response as any).success) {
         const items = extractArrayFromResponse(response as any);
-        if (items.length === 0) console.warn('No categories array found in response', response);
+        if (items.length === 0)
+          console.warn("No categories array found in response", response);
         const apiCategories = items.map(transformApiCategory);
-        
+
         // Organize categories: prefer parent categories with subcategories
         const processedChildIds = new Set<string>();
         apiCategories.forEach((cat) => {
@@ -171,13 +232,20 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
             });
           }
         });
-        
+
         const finalCategories: CategoryItem[] = [
-          { id: 'all', name: 'all', displayName: 'All', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop', isActive: true },
+          {
+            id: "all",
+            name: "all",
+            displayName: "All",
+            image:
+              "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop",
+            isActive: true,
+          },
         ];
-        
+
         apiCategories.forEach((cat) => {
-          if (cat.id === 'all') return;
+          if (cat.id === "all") return;
           if (cat.subcategories && cat.subcategories.length > 0) {
             finalCategories.push(cat);
           } else if (cat.level === 0 || cat.parentCategory === null) {
@@ -186,23 +254,23 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
             finalCategories.push(cat);
           }
         });
-        
+
         setCategories(finalCategories);
       }
     } catch (err) {
-      console.error('Failed to fetch categories:', err);
+      console.error("Failed to fetch categories:", err);
       // Keep default categories on error
     }
   }, [queryClient]);
 
   // Use React Query to fetch products and categories and keep local state in sync
   const productsQuery = useQuery({
-    queryKey: ['products', 'default'],
+    queryKey: ["products", "default"],
     queryFn: async () => productApi.getAll({ limit: 100 }),
   });
 
   const categoriesQuery = useQuery({
-    queryKey: ['categories'],
+    queryKey: ["categories"],
     queryFn: async () => categoryApi.getAll(),
   });
 
@@ -211,9 +279,11 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     if (productsQuery.data && (productsQuery.data as any).success) {
       const items = extractArrayFromResponse(productsQuery.data as any);
       if (items.length === 0) {
-        console.warn('No products array found in response', productsQuery.data);
+        console.warn("No products array found in response", productsQuery.data);
       }
-      const transformed = items.map(transformApiProduct).filter((p): p is Product => p !== null);
+      const transformed = items
+        .map(transformApiProduct)
+        .filter((p): p is Product => p !== null);
       setProducts(transformed);
     } else if (productsQuery.isError && productsQuery.error) {
       setError((productsQuery.error as Error).message);
@@ -224,11 +294,11 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     if (categoriesQuery.data && (categoriesQuery.data as any).success) {
       const items = extractArrayFromResponse(categoriesQuery.data as any);
       const apiCategories = items.map(transformApiCategory);
-      
+
       // Organize categories: prefer parent categories with subcategories
       // Filter out child categories that are already in a parent's subcategories
       const processedChildIds = new Set<string>();
-      
+
       // First pass: mark children that are in subcategories
       apiCategories.forEach((cat) => {
         if (cat.subcategories) {
@@ -237,17 +307,24 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
           });
         }
       });
-      
+
       // Build final list: include "all", then parent categories (with their subcategories)
       // Skip standalone child categories that are already in a parent's subcategories
       const finalCategories: CategoryItem[] = [
-        { id: 'all', name: 'all', displayName: 'All', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop', isActive: true },
+        {
+          id: "all",
+          name: "all",
+          displayName: "All",
+          image:
+            "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop",
+          isActive: true,
+        },
       ];
-      
+
       apiCategories.forEach((cat) => {
         // Include if it's a parent (has subcategories or level 0)
         // OR if it's a child that's not already in a parent's subcategories
-        if (cat.id === 'all') return; // Skip if "all" is in API response
+        if (cat.id === "all") return; // Skip if "all" is in API response
         if (cat.subcategories && cat.subcategories.length > 0) {
           finalCategories.push(cat);
         } else if (cat.level === 0 || cat.parentCategory === null) {
@@ -257,7 +334,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
           finalCategories.push(cat);
         }
       });
-      
+
       setCategories(finalCategories);
     }
   }, [categoriesQuery.data]);
@@ -268,9 +345,16 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     if (productsQuery.isError && productsQuery.error) {
       setError((productsQuery.error as Error).message);
     }
-  }, [productsQuery.isLoading, categoriesQuery.isLoading, productsQuery.isError, productsQuery.error]);
+  }, [
+    productsQuery.isLoading,
+    categoriesQuery.isLoading,
+    productsQuery.isError,
+    productsQuery.error,
+  ]);
 
-  const addProduct = async (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addProduct = async (
+    product: Omit<Product, "id" | "createdAt" | "updatedAt">
+  ) => {
     try {
       const response = await productApi.create({
         name: product.name,
@@ -288,10 +372,10 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       });
       if (response.success) {
         // Invalidate products query so React Query will refetch and keep cache consistent
-        queryClient.invalidateQueries({ queryKey: ['products'] });
+        queryClient.invalidateQueries({ queryKey: ["products"] });
       }
     } catch (err) {
-      console.error('Failed to add product:', err);
+      console.error("Failed to add product:", err);
       throw err;
     }
   };
@@ -313,10 +397,10 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         isActive: updates.isActive,
       });
       if (response.success) {
-        queryClient.invalidateQueries({ queryKey: ['products'] });
+        queryClient.invalidateQueries({ queryKey: ["products"] });
       }
     } catch (err) {
-      console.error('Failed to update product:', err);
+      console.error("Failed to update product:", err);
       throw err;
     }
   };
@@ -325,10 +409,10 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await productApi.delete(id);
       if (response.success) {
-        queryClient.invalidateQueries({ queryKey: ['products'] });
+        queryClient.invalidateQueries({ queryKey: ["products"] });
       }
     } catch (err) {
-      console.error('Failed to delete product:', err);
+      console.error("Failed to delete product:", err);
       throw err;
     }
   };
@@ -347,10 +431,10 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         isActive: category.isActive,
       });
       if (response.success) {
-        queryClient.invalidateQueries({ queryKey: ['categories'] });
+        queryClient.invalidateQueries({ queryKey: ["categories"] });
       }
     } catch (err) {
-      console.error('Failed to add category:', err);
+      console.error("Failed to add category:", err);
       throw err;
     }
   };
@@ -360,7 +444,10 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       const response = await categoryApi.update(id, {
         displayName: updates.displayName,
         description: updates.description,
-        image: updates.image !== undefined ? convertImageForApi(updates.image) : undefined,
+        image:
+          updates.image !== undefined
+            ? convertImageForApi(updates.image)
+            : undefined,
         icon: updates.icon,
         parentCategory: updates.parentCategory,
         level: updates.level,
@@ -368,28 +455,40 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         isActive: updates.isActive,
       });
       if (response.success) {
-        queryClient.invalidateQueries({ queryKey: ['categories'] });
+        queryClient.invalidateQueries({ queryKey: ["categories"] });
       }
     } catch (err) {
-      console.error('Failed to update category:', err);
+      console.error("Failed to update category:", err);
       throw err;
     }
   };
 
   const deleteCategory = async (id: string) => {
-    if (id === 'all') return;
+    if (id === "all") return;
     try {
       const response = await categoryApi.delete(id);
       if (response.success) {
-        queryClient.invalidateQueries({ queryKey: ['categories'] });
+        queryClient.invalidateQueries({ queryKey: ["categories"] });
       }
     } catch (err) {
-      console.error('Failed to delete category:', err);
+      console.error("Failed to delete category:", err);
       throw err;
     }
   };
 
   const getActiveProducts = () => products.filter((p) => p.isActive);
+
+  // Get all categories including subcategories (flattened)
+  const getAllCategoriesFlat = useCallback(() => {
+    const result: CategoryItem[] = [];
+    categories.forEach((cat) => {
+      result.push(cat);
+      if (cat.subcategories && cat.subcategories.length > 0) {
+        result.push(...cat.subcategories);
+      }
+    });
+    return result;
+  }, [categories]);
 
   return (
     <ProductContext.Provider
@@ -407,6 +506,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         getActiveProducts,
         refreshProducts,
         refreshCategories,
+        getAllCategoriesFlat,
       }}
     >
       {children}
@@ -417,7 +517,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 export const useProducts = () => {
   const context = useContext(ProductContext);
   if (context === undefined) {
-    throw new Error('useProducts must be used within a ProductProvider');
+    throw new Error("useProducts must be used within a ProductProvider");
   }
   return context;
 };
