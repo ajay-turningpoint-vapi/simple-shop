@@ -1,22 +1,39 @@
-import { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { useProducts, Product } from '@/context/ProductContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { LogOut, Plus, Pencil, Trash2, Search, Package, Tags, Home } from 'lucide-react';
-import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
-import { getPrimaryImage, getImageUrl } from '@/lib/utils';
-import ProductForm from './ProductForm';
-import CategoryManager from './CategoryManager';
+import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useProducts, Product } from "@/context/ProductContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  LogOut,
+  Plus,
+  Pencil,
+  Trash2,
+  Search,
+  Package,
+  Tags,
+  Home,
+} from "lucide-react";
+import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { getPrimaryImage, getImageUrl } from "@/lib/utils";
+import ProductForm from "./ProductForm";
+import CategoryManager from "./CategoryManager";
 
 const AdminDashboard = () => {
   const { logout } = useAuth();
-  const { products, deleteProduct } = useProducts();
-  const [search, setSearch] = useState('');
+  const { products, deleteProduct, loading } = useProducts();
+  const [search, setSearch] = useState("");
   const [editProduct, setEditProduct] = useState<Product | undefined>();
   const [showForm, setShowForm] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
@@ -30,7 +47,7 @@ const AdminDashboard = () => {
   const handleDelete = (id: string, name: string) => {
     if (confirm(`Delete "${name}"?`)) {
       deleteProduct(id);
-      toast.success('Product deleted!');
+      toast.success("Product deleted!");
     }
   };
 
@@ -47,9 +64,9 @@ const AdminDashboard = () => {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
       maximumFractionDigits: 0,
     }).format(price);
   };
@@ -82,7 +99,9 @@ const AdminDashboard = () => {
                 <Package className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-2xl font-bold">{products.length}</p>
-                  <p className="text-xs text-muted-foreground">Total Products</p>
+                  <p className="text-xs text-muted-foreground">
+                    Total Products
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -92,8 +111,12 @@ const AdminDashboard = () => {
               <div className="flex items-center gap-2">
                 <Package className="h-5 w-5 text-primary" />
                 <div>
-                  <p className="text-2xl font-bold">{products.filter(p => p.isActive).length}</p>
-                  <p className="text-xs text-muted-foreground">Active Products</p>
+                  <p className="text-2xl font-bold">
+                    {products.filter((p) => p.isActive).length}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Active Products
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -119,7 +142,10 @@ const AdminDashboard = () => {
             >
               <Tags className="h-4 w-4 mr-1" /> Categories
             </Button>
-            <Button onClick={() => setShowForm(true)} className="flex-1 sm:flex-none">
+            <Button
+              onClick={() => setShowForm(true)}
+              className="flex-1 sm:flex-none"
+            >
               <Plus className="h-4 w-4 mr-1" /> Add Product
             </Button>
           </div>
@@ -132,7 +158,9 @@ const AdminDashboard = () => {
         <div className="hidden md:block">
           <Card>
             <CardHeader>
-              <CardTitle className="font-display">Products ({filteredProducts.length})</CardTitle>
+              <CardTitle className="font-display">
+                Products ({filteredProducts.length})
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
@@ -147,35 +175,43 @@ const AdminDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-
-
                   {filteredProducts.map((product) => {
                     return (
                       <TableRow key={product.id}>
                         <TableCell>
                           <div className="flex items-center -space-x-1">
                             {product.images && product.images.length > 0 ? (
-                              product.images.slice(0, 3).map((src, i) => (
-                                <img
-                                  key={i}
-                                  src={getImageUrl(src)}
-                                  alt={`${product.name}-thumb-${i}`}
-                                  loading="lazy"
-                                  decoding="async"
-                                  className="w-8 h-8 object-contain rounded border border-border bg-white"
-                                />
-                              ))
+                              product.images
+                                .slice(0, 3)
+                                .map((src, i) => (
+                                  <img
+                                    key={i}
+                                    src={getImageUrl(src)}
+                                    alt={`${product.name}-thumb-${i}`}
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="w-8 h-8 object-contain rounded border border-border bg-white"
+                                  />
+                                ))
                             ) : (
-                              <img src="/placeholder.svg" alt="placeholder" className="w-8 h-8 object-contain rounded bg-white" />
+                              <img
+                                src="/placeholder.svg"
+                                alt="placeholder"
+                                className="w-8 h-8 object-contain rounded bg-white"
+                              />
                             )}
 
                             {product.images.length > 3 && (
-                              <div className="ml-1 text-xs text-muted-foreground">+{product.images.length - 3}</div>
+                              <div className="ml-1 text-xs text-muted-foreground">
+                                +{product.images.length - 3}
+                              </div>
                             )}
                           </div>
                         </TableCell>
 
-                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell className="font-medium">
+                          {product.name}
+                        </TableCell>
 
                         <TableCell>
                           <Badge variant="secondary">{product.category}</Badge>
@@ -183,7 +219,9 @@ const AdminDashboard = () => {
 
                         <TableCell>
                           <div>
-                            <span className="font-semibold">{formatPrice(product.price)}</span>
+                            <span className="font-semibold">
+                              {formatPrice(product.price)}
+                            </span>
                             {product.discountPercent > 0 && (
                               <span className="text-xs text-muted-foreground line-through ml-1">
                                 {formatPrice(product.mrp)}
@@ -193,8 +231,10 @@ const AdminDashboard = () => {
                         </TableCell>
 
                         <TableCell>
-                          <Badge variant={product.isActive ? 'default' : 'secondary'}>
-                            {product.isActive ? 'Active' : 'Inactive'}
+                          <Badge
+                            variant={product.isActive ? "default" : "secondary"}
+                          >
+                            {product.isActive ? "Active" : "Inactive"}
                           </Badge>
                         </TableCell>
 
@@ -216,7 +256,11 @@ const AdminDashboard = () => {
                               size="icon"
                               className="text-destructive"
                               onClick={() => {
-                                console.log("Delete clicked:", product.id, product.name);
+                                console.log(
+                                  "Delete clicked:",
+                                  product.id,
+                                  product.name
+                                );
                                 handleDelete(product.id, product.name);
                               }}
                             >
@@ -227,7 +271,6 @@ const AdminDashboard = () => {
                       </TableRow>
                     );
                   })}
-
                 </TableBody>
               </Table>
             </CardContent>
@@ -250,15 +293,22 @@ const AdminDashboard = () => {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium truncate">{product.name}</h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary" className="text-xs">{product.category?.length > 10
-                        ? product.category.slice(0, 10) + "…"
-                        : product.category}</Badge>
-                      <Badge variant={product.isActive ? 'default' : 'secondary'} className="text-xs">
-                        {product.isActive ? 'Active' : 'Inactive'}
+                      <Badge variant="secondary" className="text-xs">
+                        {product.category?.length > 10
+                          ? product.category.slice(0, 10) + "…"
+                          : product.category}
+                      </Badge>
+                      <Badge
+                        variant={product.isActive ? "default" : "secondary"}
+                        className="text-xs"
+                      >
+                        {product.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </div>
                     <div className="mt-1">
-                      <span className="font-semibold text-sm">{formatPrice(product.price)}</span>
+                      <span className="font-semibold text-sm">
+                        {formatPrice(product.price)}
+                      </span>
                       {product.discountPercent > 0 && (
                         <span className="text-xs text-muted-foreground line-through ml-1">
                           {formatPrice(product.mrp)}
@@ -267,7 +317,12 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(product)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleEdit(product)}
+                    >
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
@@ -283,20 +338,26 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           ))}
-
-
         </div>
 
         {filteredProducts.length === 0 && (
           <div className="text-center py-12">
             <Package className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="font-display text-lg font-semibold mb-2">No products found</h3>
-            <p className="text-muted-foreground">Add your first product to get started.</p>
+            <h3 className="font-display text-lg font-semibold mb-2">
+              No products found
+            </h3>
+            <p className="text-muted-foreground">
+              Add your first product to get started.
+            </p>
           </div>
         )}
       </main>
 
-      <ProductForm product={editProduct} open={showForm} onClose={handleCloseForm} />
+      <ProductForm
+        product={editProduct}
+        open={showForm}
+        onClose={handleCloseForm}
+      />
     </div>
   );
 };
